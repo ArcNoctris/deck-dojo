@@ -14,6 +14,7 @@
 - [x] **State Management (Deck Store):** Zustand store, Types, Validation Logic.
 - [ ] **Deck Dashboard:** View list of created decks.
 - [ ] **Create New Deck:** Initialize a new empty deck.
+- [x] **Card Drawer & Virtual List:** Vaul Drawer, Virtual List, Search Logic.
 - [ ] **Card Search Interface:**
     - [ ] Search bar with debounce.
     - [ ] Filters (Type, Attribute, Level).
