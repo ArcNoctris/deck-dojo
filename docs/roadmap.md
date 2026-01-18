@@ -11,6 +11,7 @@
 *Goal: Build the core Deck Builder interface where users can search cards and construct decks.*
 
 - [x] **Design System Foundation:** Tailwind config, Colors, UI Atoms.
+- [x] **State Management (Deck Store):** Zustand store, Types, Validation Logic.
 - [ ] **Deck Dashboard:** View list of created decks.
 - [ ] **Create New Deck:** Initialize a new empty deck.
 - [ ] **Card Search Interface:**
