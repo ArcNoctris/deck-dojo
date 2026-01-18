@@ -12,8 +12,8 @@
 
 - [x] **Design System Foundation:** Tailwind config, Colors, UI Atoms.
 - [x] **State Management (Deck Store):** Zustand store, Types, Validation Logic.
-- [ ] **Deck Dashboard:** View list of created decks.
-- [ ] **Create New Deck:** Initialize a new empty deck.
+- [x] **Deck Dashboard:** View list of created decks.
+- [x] **Create New Deck:** Initialize a new empty deck (Server Action).
 - [x] **Card Drawer & Virtual List:** Vaul Drawer, Virtual List, Search Logic.
 - [ ] **Card Search Interface:**
     - [ ] Search bar with debounce.

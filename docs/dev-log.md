@@ -7,3 +7,4 @@
 - **Sprint 2 Task 2 Completed.** Implemented `useBuilderStore` with Zustand, including DeckCard types, logic for Add/Remove/Tag (Max 3 copies rule), and localStorage persistence.
 - **Sprint 2 Task 3 Completed.** Implemented `CardDrawer` (Vaul) and `VirtualCardList` (TanStack Virtual/Query) for high-performance card access.
 - **Sprint 2 Task 4 Completed.** Assembled the Deck Builder Workbench at `/builder` with `DeckGrid` (Tabs, Remove Actions) and integrated the `CardDrawer`.
+- **Sprint 2 Task 5 Completed.** Created Dashboard with Deck List and "Create New Deck" Server Action. Refactored Builder route to dynamic `/deck/[id]`.
