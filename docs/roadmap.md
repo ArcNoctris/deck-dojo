@@ -23,7 +23,7 @@
     - [ ] Add card to Main/Side/Extra deck.
     - [ ] Remove card.
     - [ ] Card counts (max 3 rule).
-- [ ] **Visual Deck View:** Grid view of current deck.
+- [x] **Visual Deck View:** Workbench Grid, Tabs, Empty States.
 - [ ] **Save System:** Persist deck changes to Supabase.
 
 ## Phase 3: The Dojo (Sprint 3)
