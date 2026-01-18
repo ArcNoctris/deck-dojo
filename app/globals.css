@@ -1,22 +1,74 @@
 @import "tailwindcss";
 
 @theme {
-  --color-void-black: #0B0C10;
-  --color-gunmetal-grey: #1F2833;
-  --color-strike-red: #FF2E63;
-  --color-neon-cyan: #08D9D6;
-  --color-focus-amber: #F9ED69;
+  /* Requested Palette */
+  --color-navy-900: #0B0C10; /* Void Black - Main BG */
+  --color-navy-800: #1F2833; /* Gunmetal Grey - Containers */
+  --color-cyan-500: #08D9D6; /* Neon Cyan - Accents/Data */
+  --color-cyan-50: #ECFEFF;  /* Very Light Cyan/White for text */
+  --color-red-500: #FF2E63;  /* Strike Red - Action/Bricks */
+  --color-amber-400: #F9ED69; /* Focus Amber - Warnings */
+  
+  /* Semantic Aliases */
+  --color-void-black: var(--color-navy-900);
+  --color-gunmetal-grey: var(--color-navy-800);
+  --color-strike-red: var(--color-red-500);
+  --color-neon-cyan: var(--color-cyan-500);
+  --color-focus-amber: var(--color-amber-400);
 
+  /* Fonts */
   --font-heading: var(--font-rajdhani);
   --font-mono: var(--font-jetbrains-mono);
 }
 
 body {
-  background-color: var(--color-void-black);
-  color: #ffffff;
+  background-color: var(--color-navy-900);
+  color: var(--color-cyan-50);
   font-family: var(--font-mono);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
+}
+
+/* Custom Utilities */
+@utility chamfered {
+  clip-path: polygon(
+    0 10px, 
+    10px 0, 
+    100% 0, 
+    100% calc(100% - 10px), 
+    calc(100% - 10px) 100%, 
+    0 100%
+  );
+  /* Top-Left and Bottom-Right cut style common in Sci-Fi */
+}
+
+@utility chamfered-all {
+    clip-path: polygon(
+        10px 0, 
+        calc(100% - 10px) 0, 
+        100% 10px, 
+        100% calc(100% - 10px), 
+        calc(100% - 10px) 100%, 
+        10px 100%, 
+        0 calc(100% - 10px), 
+        0 10px
+    );
+}
+
+@utility glow-cyan {
+  box-shadow: 0 0 10px var(--color-cyan-500), 0 0 20px rgba(8, 217, 214, 0.4);
+}
+
+@utility scifi-border {
+  border: 1px solid rgba(8, 217, 214, 0.3);
+}
+
+/* Base Styles for clean inputs */
+input, textarea, select {
+    background: transparent;
+    outline: none;
 }
