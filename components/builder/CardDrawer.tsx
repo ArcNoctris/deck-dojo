@@ -12,7 +12,7 @@ import { useBuilderStore } from '@/store/builder-store';
 
 export const CardDrawer = () => {
   const [localSearch, setLocalSearch] = useState('');
-  const [debouncedSearch] = useDebounce(localSearch, 300);
+  const [debouncedSearch] = useDebounce(localSearch, 500);
   const { setFilters } = useBuilderStore();
 
   // Sync debounced search to store

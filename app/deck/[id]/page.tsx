@@ -2,7 +2,7 @@ import { DeckGrid } from '@/components/builder/DeckGrid';
 import { CardDrawer } from '@/components/builder/CardDrawer';
 import { DeckManager } from '@/components/builder/DeckManager';
 import { DeckHeader } from '@/components/builder/DeckHeader';
-import { DeckTools } from '@/components/builder/DeckTools';
+import { DeckSettings } from '@/components/builder/DeckSettings';
 import { createClient } from '@/utils/supabase/server';
 import { notFound, redirect } from 'next/navigation';
 
@@ -42,7 +42,7 @@ export default async function DeckBuilderPage({ params }: DeckPageProps) {
 
       {/* Scrollable Workspace */}
       <main className="flex-1 overflow-hidden relative w-full">
-        <DeckTools />
+        <DeckSettings />
         <DeckGrid />
       </main>
 

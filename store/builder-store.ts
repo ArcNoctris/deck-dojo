@@ -13,6 +13,8 @@ export interface ActiveFilters {
 }
 
 export type SortMethod = 'default' | 'monster-spell-trap' | 'alphabetical';
+export type ViewMode = 'standard' | 'list' | 'compact';
+export type Density = 'standard' | 'high';
 
 interface BuilderActions {
   addCard: (card: Card, location: 'main' | 'extra' | 'side') => void;
@@ -25,11 +27,19 @@ interface BuilderActions {
   setFilters: (filters: Partial<ActiveFilters>) => void;
   setSortMethod: (method: SortMethod) => void;
   sortDeck: (method: SortMethod) => void;
+  
+  // View Settings
+  setViewMode: (mode: ViewMode) => void;
+  toggleStacked: () => void;
+  setDensity: (density: Density) => void;
 }
 
 type BuilderStore = DeckState & {
   activeFilters: ActiveFilters;
   sortMethod: SortMethod;
+  viewMode: ViewMode;
+  isStacked: boolean;
+  density: Density;
 } & BuilderActions;
 
 const MAX_MAIN = 60;
@@ -55,6 +65,9 @@ export const useBuilderStore = create<BuilderStore>()(
       unsavedChanges: false,
       activeFilters: DEFAULT_FILTERS,
       sortMethod: 'default',
+      viewMode: 'standard',
+      isStacked: false,
+      density: 'standard',
 
       addCard: (card, location) => {
         const state = get();
@@ -135,6 +148,10 @@ export const useBuilderStore = create<BuilderStore>()(
       setSortMethod: (method) => {
         set({ sortMethod: method });
       },
+      
+      setViewMode: (mode) => set({ viewMode: mode }),
+      toggleStacked: () => set((state) => ({ isStacked: !state.isStacked })),
+      setDensity: (density) => set({ density }),
 
       sortDeck: (method) => {
         set((state) => {
