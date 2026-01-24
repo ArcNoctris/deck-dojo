@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Rajdhani, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import QueryProvider from "@/components/providers/QueryProvider";
+import { Toaster } from 'sonner';
 
 const rajdhani = Rajdhani({
   weight: ['300', '400', '500', '600', '700'],
@@ -31,6 +32,7 @@ export default function RootLayout({
       >
         <QueryProvider>
           {children}
+          <Toaster position="top-center" theme="dark" richColors />
         </QueryProvider>
       </body>
     </html>

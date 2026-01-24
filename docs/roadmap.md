@@ -24,7 +24,7 @@
     - [ ] Remove card.
     - [ ] Card counts (max 3 rule).
 - [x] **Visual Deck View:** Workbench Grid, Tabs, Empty States.
-- [ ] **Save System:** Persist deck changes to Supabase.
+- [x] **Save System:** Persist deck changes (Server Actions, Hydration, Save Logic).
 
 ## Phase 3: The Dojo (Sprint 3)
 *Goal: Test decks and simulate hands.*
