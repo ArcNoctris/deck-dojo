@@ -3,8 +3,9 @@
 import React from 'react';
 import { useBuilderStore } from '@/store/builder-store';
 import { DeckCard, UserTag } from '@/types/deck';
-import { X, Layers, Box, Archive } from 'lucide-react';
+import { X, Layers, Box, Archive, Ban } from 'lucide-react';
 import { CardContextMenu } from '../CardContextMenu';
+import { useDeckValidation } from '../hooks/useDeckValidation';
 
 const TAG_COLORS: Record<string, string> = {
     starter: 'bg-green-500',
@@ -24,7 +25,7 @@ const TagRibbon = ({ tag }: { tag: UserTag }) => {
     );
 };
 
-const StackedCard = ({ card, count, onRemove, location }: { card: DeckCard, count: number, onRemove: () => void, location: 'main' | 'extra' | 'side' }) => {
+const StackedCard = ({ card, count, onRemove, location, isError }: { card: DeckCard, count: number, onRemove: () => void, location: 'main' | 'extra' | 'side', isError: boolean }) => {
   const { moveCard } = useBuilderStore();
 
   const handleDoubleClick = () => {
@@ -52,7 +53,12 @@ const StackedCard = ({ card, count, onRemove, location }: { card: DeckCard, coun
         )}
 
         {/* Main Card */}
-        <div className="absolute top-0 left-0 w-full h-full z-10 hover:z-20 transition-all hover:-translate-y-1">
+        <div className={`absolute top-0 left-0 w-full h-full z-10 hover:z-20 transition-all hover:-translate-y-1 ${isError ? 'ring-2 ring-red-500 rounded-sm shadow-[0_0_15px_rgba(255,46,99,0.5)]' : ''}`}>
+            {card.ban_status === 'Banned' && (
+                <div className="absolute inset-0 bg-red-900/60 flex items-center justify-center z-10 rounded-sm backdrop-blur-[1px]">
+                    <Ban className="w-8 h-8 text-red-500 drop-shadow-md" />
+                </div>
+            )}
             <TagRibbon tag={card.userTag} />
             
             <button 
@@ -84,6 +90,7 @@ const StackedCard = ({ card, count, onRemove, location }: { card: DeckCard, coun
 };
 
 const Section = ({ title, cards, isStacked, onRemove, location }: { title: string, cards: DeckCard[], isStacked: boolean, onRemove: (id: string, loc: any) => void, location: 'main' | 'extra' | 'side' }) => {
+    const { erroredCardIds } = useDeckValidation();
     if (cards.length === 0) return null;
 
     let items: React.ReactNode[] = [];
@@ -108,10 +115,12 @@ const Section = ({ title, cards, isStacked, onRemove, location }: { title: strin
                 count={row.count} 
                 location={location}
                 onRemove={() => onRemove(row.instanceIds[0], location)}
+                isError={erroredCardIds.includes(row.card.id)}
             />
         ));
     } else {
         items = cards.map(card => {
+            const isError = erroredCardIds.includes(card.id);
             const handleDoubleClick = () => {
                 if (location === 'main') moveCard(card.instanceId, 'main', 'side');
                 else if (location === 'extra') moveCard(card.instanceId, 'extra', 'side');
@@ -125,9 +134,14 @@ const Section = ({ title, cards, isStacked, onRemove, location }: { title: strin
             return (
                 <CardContextMenu key={card.instanceId} instanceId={card.instanceId} location={location} cardType={card.type}>
                     <div 
-                        className="relative group aspect-[2/3] select-none"
+                        className={`relative group aspect-[2/3] select-none ${isError ? 'ring-2 ring-red-500 rounded-sm shadow-[0_0_15px_rgba(255,46,99,0.5)]' : ''}`}
                         onDoubleClick={handleDoubleClick}
                     >
+                        {card.ban_status === 'Banned' && (
+                            <div className="absolute inset-0 bg-red-900/60 flex items-center justify-center z-10 rounded-sm backdrop-blur-[1px]">
+                                <Ban className="w-8 h-8 text-red-500 drop-shadow-md" />
+                            </div>
+                        )}
                         <TagRibbon tag={card.userTag} />
                         <button 
                             onClick={(e) => { e.stopPropagation(); onRemove(card.instanceId, location); }}

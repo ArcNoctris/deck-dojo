@@ -2,9 +2,10 @@
 
 import React, { useState } from 'react';
 import { useBuilderStore } from '@/store/builder-store';
-import { X, Layers, Box, Archive, AlertTriangle } from 'lucide-react';
+import { X, Layers, Box, Archive, AlertTriangle, Ban } from 'lucide-react';
 import { CardContextMenu } from '../CardContextMenu';
 import { UserTag } from '@/types/deck';
+import { useDeckValidation } from '../hooks/useDeckValidation';
 
 const TAG_COLORS: Record<string, string> = {
     starter: 'bg-green-500',
@@ -18,6 +19,7 @@ const TAG_COLORS: Record<string, string> = {
 export const StandardGrid = () => {
   const { mainDeck, extraDeck, sideDeck, removeCard, moveCard, density } = useBuilderStore();
   const [activeTab, setActiveTab] = useState<'main' | 'extra' | 'side'>('main');
+  const { erroredCardIds } = useDeckValidation();
 
   const currentDeck = activeTab === 'main' ? mainDeck : activeTab === 'extra' ? extraDeck : sideDeck;
   const maxCount = activeTab === 'main' ? 60 : 15;
@@ -73,12 +75,27 @@ export const StandardGrid = () => {
           <EmptyState label={activeTab} />
         ) : (
           <div className={`grid ${gridClass} animate-in fade-in duration-300`}>
-            {currentDeck.map((card) => (
+            {currentDeck.map((card) => {
+              const isError = erroredCardIds.includes(card.id);
+              return (
               <CardContextMenu key={card.instanceId} instanceId={card.instanceId} location={activeTab} cardType={card.type}>
                   <div 
-                    className="relative group aspect-[2/3] transform transition-transform hover:scale-105 hover:z-10"
+                    className={`relative group aspect-[2/3] transform transition-transform hover:scale-105 hover:z-10 ${isError ? 'ring-2 ring-red-500 rounded-sm shadow-[0_0_15px_rgba(255,46,99,0.5)]' : ''}`}
                     onDoubleClick={() => handleDoubleClick(card.instanceId, activeTab, card.type)}
                   >
+                     {/* Ban Status Overlay */}
+                     {card.ban_status === 'Banned' && (
+                        <div className="absolute inset-0 bg-red-900/60 flex items-center justify-center z-10 rounded-sm backdrop-blur-[1px]">
+                            <Ban className="w-8 h-8 text-red-500 drop-shadow-md" />
+                        </div>
+                     )}
+                     {card.ban_status === 'Limited' && (
+                        <div className="absolute top-0 left-0 bg-orange-500 text-black font-heading font-bold text-[10px] w-5 h-5 flex items-center justify-center rounded-br-md z-20 shadow-sm border-r border-b border-black/20">1</div>
+                     )}
+                     {card.ban_status === 'Semi-Limited' && (
+                        <div className="absolute top-0 left-0 bg-yellow-500 text-black font-heading font-bold text-[10px] w-5 h-5 flex items-center justify-center rounded-br-md z-20 shadow-sm border-r border-b border-black/20">2</div>
+                     )}
+
                      {/* Tag Ribbon */}
                      {card.userTag && TAG_COLORS[card.userTag] && (
                         <div className="absolute top-0 right-0 w-8 h-8 pointer-events-none overflow-hidden rounded-tr-sm z-20">
@@ -105,7 +122,8 @@ export const StandardGrid = () => {
                      </div>
                   </div>
               </CardContextMenu>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

@@ -5,6 +5,7 @@ import { useBuilderStore } from '@/store/builder-store';
 import { DeckCard, UserTag } from '@/types/deck';
 import { X, Layers, Box, Archive } from 'lucide-react';
 import { CardContextMenu } from '../CardContextMenu';
+import { useDeckValidation } from '../hooks/useDeckValidation';
 
 const getTypeColor = (type: string | null) => {
     if (!type) return 'bg-gray-500';
@@ -30,9 +31,10 @@ interface GroupedRowProps {
     instanceId: string; // One instance for context menu
     onRemove: () => void;
     location: 'main' | 'extra' | 'side';
+    isError: boolean;
 }
 
-const GroupedRow = ({ card, count, tag, instanceId, onRemove, location }: GroupedRowProps) => {
+const GroupedRow = ({ card, count, tag, instanceId, onRemove, location, isError }: GroupedRowProps) => {
     const { moveCard } = useBuilderStore();
 
     const handleDoubleClick = () => {
@@ -48,7 +50,7 @@ const GroupedRow = ({ card, count, tag, instanceId, onRemove, location }: Groupe
     return (
         <CardContextMenu instanceId={instanceId} location={location} cardType={card.type}>
             <div 
-                className="flex items-center gap-3 bg-navy-900 border border-navy-800 p-2 rounded mb-1 relative group hover:border-cyan-500/50 transition-colors select-none"
+                className={`flex items-center gap-3 bg-navy-900 border p-2 rounded mb-1 relative group hover:border-cyan-500/50 transition-colors select-none ${isError ? 'border-red-500/50 bg-red-900/10' : 'border-navy-800'}`}
                 onDoubleClick={handleDoubleClick}
             >
                 <div className={`w-1 self-stretch rounded-full ${getTypeColor(card.type)}`} />
@@ -91,6 +93,7 @@ const GroupedRow = ({ card, count, tag, instanceId, onRemove, location }: Groupe
 };
 
 const Section = ({ title, cards, icon, onRemove, location }: { title: string, cards: DeckCard[], icon: any, onRemove: (id: string) => void, location: 'main' | 'extra' | 'side' }) => {
+    const { erroredCardIds } = useDeckValidation();
     // Group by ID AND Tag
     const grouped = new Map<string, { card: DeckCard, count: number, instanceIds: string[], tag: UserTag }>();
     
@@ -123,6 +126,7 @@ const Section = ({ title, cards, icon, onRemove, location }: { title: string, ca
                         instanceId={row.instanceIds[0]} 
                         onRemove={() => onRemove(row.instanceIds[0])}
                         location={location}
+                        isError={erroredCardIds.includes(row.card.id)}
                     />
                 ))}
             </div>

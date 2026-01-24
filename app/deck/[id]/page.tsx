@@ -3,6 +3,7 @@ import { CardDrawer } from '@/components/builder/CardDrawer';
 import { DeckManager } from '@/components/builder/DeckManager';
 import { DeckHeader } from '@/components/builder/DeckHeader';
 import { DeckSettings } from '@/components/builder/DeckSettings';
+import { DeckConsole } from '@/components/builder/DeckConsole';
 import { createClient } from '@/utils/supabase/server';
 import { notFound, redirect } from 'next/navigation';
 
@@ -48,6 +49,7 @@ export default async function DeckBuilderPage({ params }: DeckPageProps) {
 
       {/* Floating Action Button & Drawer */}
       <CardDrawer />
+      <DeckConsole />
     </div>
   );
 }
