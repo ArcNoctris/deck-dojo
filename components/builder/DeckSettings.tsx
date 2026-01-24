@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useBuilderStore, SortMethod, ViewMode, Density } from '@/store/builder-store';
 import { Button } from '@/components/ui/Button';
 import { 
-    Settings, 
+    Eye, 
     LayoutGrid, 
     List, 
     Grid3X3, 
@@ -31,18 +31,17 @@ export const DeckSettings = () => {
     };
 
     return (
-        <div className="absolute top-4 right-6 z-20 flex gap-2">
-            <div className="relative">
-                <Button 
-                    variant="ghost" 
-                    onClick={() => setIsOpen(!isOpen)}
-                    className={`flex items-center gap-2 bg-navy-800/90 backdrop-blur border text-xs font-mono shadow-lg transition-all ${isOpen ? 'border-cyan-500 text-cyan-400' : 'border-cyan-500/30 text-cyan-400 hover:text-cyan-300 hover:border-cyan-500'}`}
-                >
-                    <Settings className="w-4 h-4" />
-                    VIEW OPTIONS
-                </Button>
-                
-                {isOpen && (
+        <div className="relative">
+            <Button 
+                variant="ghost" 
+                onClick={() => setIsOpen(!isOpen)}
+                className={`flex items-center gap-2 h-10 px-4 rounded-md border text-xs font-mono transition-all ${isOpen ? 'bg-navy-800 border-cyan-500 text-cyan-400' : 'border-transparent text-gray-400 hover:text-cyan-400 hover:bg-navy-800'}`}
+            >
+                <Eye className="w-4 h-4" />
+                <span className="hidden sm:inline">VIEW</span>
+            </Button>
+            
+            {isOpen && (
                     <div className="absolute right-0 top-full mt-2 w-72 bg-navy-900/95 border border-cyan-500/30 rounded shadow-[0_0_30px_rgba(0,0,0,0.6)] backdrop-blur-md flex flex-col z-20 animate-in fade-in zoom-in duration-200 p-2 gap-4">
                         
                         {/* View Mode */}
@@ -135,7 +134,6 @@ export const DeckSettings = () => {
 
                     </div>
                 )}
-            </div>
         </div>
     );
 };

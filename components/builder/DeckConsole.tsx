@@ -23,46 +23,51 @@ export const DeckConsole = () => {
   }
 
   return (
-    <div className={`fixed bottom-24 left-4 right-20 z-30 transition-all duration-300 ${isExpanded ? 'h-64' : 'h-12'}`}>
-        <div className={`w-full h-full bg-navy-900/95 backdrop-blur-md border ${statusBorder} rounded-lg shadow-2xl flex flex-col overflow-hidden`}>
-            {/* Header / Collapsed View */}
-            <div 
-                className={`flex items-center justify-between px-4 py-3 cursor-pointer ${statusBg} transition-colors hover:bg-opacity-20`}
-                onClick={() => setIsExpanded(!isExpanded)}
-            >
-                <div className="flex items-center gap-3">
-                    <div className={`w-2.5 h-2.5 rounded-full ${isValid ? (warnings.length > 0 ? 'bg-yellow-500' : 'bg-green-500') : 'bg-red-500'} ${!isValid ? 'animate-pulse' : ''}`} />
-                    <span className={`font-mono text-xs font-bold uppercase tracking-wider ${statusColor}`}>
-                        {isValid ? 'DECK LEGAL' : 'DECK ILLEGAL'}
-                    </span>
-                    <span className="text-gray-500 text-[10px] font-mono border-l border-gray-700 pl-3">
-                        {errors.length} ERRORS / {warnings.length} WARNINGS
-                    </span>
+    <div className="fixed bottom-24 left-4 z-30 flex flex-col items-start gap-2">
+        {/* Expanded Content Popover */}
+        {isExpanded && (
+            <div className={`w-80 max-h-64 bg-navy-900/95 backdrop-blur-md border ${statusBorder} rounded-lg shadow-2xl flex flex-col overflow-hidden mb-2 animate-in slide-in-from-bottom-2 fade-in duration-200`}>
+                <div className="flex items-center justify-between px-3 py-2 bg-black/40 border-b border-white/5">
+                    <span className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">System Diagnostics</span>
+                    <button onClick={() => setIsExpanded(false)}><ChevronDown className="w-3 h-3 text-gray-500 hover:text-white" /></button>
                 </div>
-                {isExpanded ? <ChevronDown className="w-4 h-4 text-gray-400" /> : <ChevronUp className="w-4 h-4 text-gray-400" />}
-            </div>
-
-            {/* Expanded Content */}
-            {isExpanded && (
-                <div className="flex-1 overflow-y-auto p-4 font-mono text-xs space-y-2 bg-black/40">
+                <div className="flex-1 overflow-y-auto p-3 font-mono text-xs space-y-2">
                     {errors.length === 0 && warnings.length === 0 && (
                         <div className="text-green-500 flex items-center gap-2">
-                            <CheckCircle className="w-4 h-4" /> System Optimal. No issues detected.
+                            <CheckCircle className="w-3 h-3" /> System Optimal.
                         </div>
                     )}
                     {errors.map((err, i) => (
-                        <div key={`err-${i}`} className="text-red-400 flex items-start gap-2 animate-in fade-in slide-in-from-left-2 duration-300" style={{ animationDelay: `${i * 50}ms` }}>
-                            <XCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                        <div key={`err-${i}`} className="text-red-400 flex items-start gap-2">
+                            <XCircle className="w-3 h-3 shrink-0 mt-0.5" />
                             <span>{err}</span>
                         </div>
                     ))}
                     {warnings.map((warn, i) => (
-                        <div key={`warn-${i}`} className="text-yellow-400 flex items-start gap-2 animate-in fade-in slide-in-from-left-2 duration-300" style={{ animationDelay: `${(errors.length + i) * 50}ms` }}>
-                            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                        <div key={`warn-${i}`} className="text-yellow-400 flex items-start gap-2">
+                            <AlertTriangle className="w-3 h-3 shrink-0 mt-0.5" />
                             <span>{warn}</span>
                         </div>
                     ))}
                 </div>
+            </div>
+        )}
+
+        {/* Slim Status Pill */}
+        <div 
+            onClick={() => setIsExpanded(!isExpanded)}
+            className={`h-8 px-3 rounded-full flex items-center gap-2 cursor-pointer shadow-lg transition-all ${statusBg} border ${statusBorder} hover:brightness-110 backdrop-blur-sm`}
+        >
+            <div className={`w-2 h-2 rounded-full ${isValid ? (warnings.length > 0 ? 'bg-yellow-500' : 'bg-green-500') : 'bg-red-500'} ${!isValid ? 'animate-pulse' : ''}`} />
+            <span className={`font-mono text-[10px] font-bold uppercase tracking-wider ${statusColor}`}>
+                {isValid ? 'LEGAL' : 'ILLEGAL'}
+            </span>
+            {(!isValid || warnings.length > 0) && (
+                <span className="text-[10px] text-gray-400 font-mono pl-2 border-l border-white/10 flex gap-1">
+                    {errors.length > 0 && <span className="text-red-400">{errors.length}</span>}
+                    {errors.length > 0 && warnings.length > 0 && <span>/</span>}
+                    {warnings.length > 0 && <span className="text-yellow-400">{warnings.length}</span>}
+                </span>
             )}
         </div>
     </div>

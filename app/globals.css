@@ -78,3 +78,12 @@ select option {
     background-color: var(--color-navy-900);
     color: var(--color-cyan-50);
 }
+
+/* Scrollbar Hide Utility */
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}

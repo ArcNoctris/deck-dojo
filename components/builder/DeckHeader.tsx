@@ -2,11 +2,12 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { Save, Loader2, Settings, X } from 'lucide-react';
+import { Save, Loader2, Settings, X, Edit2 } from 'lucide-react';
 import { useBuilderStore } from '@/store/builder-store';
 import { saveDeck, SavedDeckCard, updateDeckMetadata } from '@/app/deck/[id]/actions';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/Input';
+import { DeckSettings } from './DeckSettings';
 
 interface DeckHeaderProps {
   deckId: string;
@@ -82,34 +83,37 @@ export const DeckHeader = ({ deckId, name, format }: DeckHeaderProps) => {
     <>
         <header className="border-b border-navy-800 bg-navy-900/95 backdrop-blur-sm z-30 shrink-0">
             <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-                <div>
-                    <h1 className="font-heading text-2xl text-cyan-500 tracking-wider font-bold glow-text-sm uppercase flex items-center gap-2">
-                        {name}
-                        {unsavedChanges && <span className="w-2 h-2 rounded-full bg-focus-amber animate-pulse" title="Unsaved Changes"></span>}
-                    </h1>
-                    <span className="font-mono text-[10px] text-gray-500 uppercase tracking-widest">
-                        {format || 'UNKNOWN'} OPERATION
-                    </span>
+                <div className="flex items-center gap-4">
+                    <div>
+                        <h1 className="font-heading text-2xl text-cyan-500 tracking-wider font-bold glow-text-sm uppercase flex items-center gap-2">
+                            {name}
+                            {unsavedChanges && <span className="w-2 h-2 rounded-full bg-focus-amber animate-pulse" title="Unsaved Changes"></span>}
+                        </h1>
+                        <span className="font-mono text-[10px] text-gray-500 uppercase tracking-widest">
+                            {format || 'UNKNOWN'} OPERATION
+                        </span>
+                    </div>
+                    <Button variant="ghost" onClick={() => setShowSettings(true)} className="h-8 w-8 p-0 text-gray-500 hover:text-cyan-400">
+                        <Edit2 className="w-4 h-4" />
+                    </Button>
                 </div>
                 
-                <div className="flex items-center gap-4">
-                    <div className="hidden md:flex items-center gap-2">
+                <div className="flex items-center gap-2">
+                    <div className="hidden lg:flex items-center gap-2 mr-4">
                         <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                         <span className="font-mono text-xs text-gray-500">SYSTEM ONLINE</span>
                     </div>
 
-                    <Button variant="ghost" onClick={() => setShowSettings(true)} className="text-cyan-500 hover:text-cyan-400 hover:bg-cyan-500/10">
-                        <Settings className="w-5 h-5" />
-                    </Button>
+                    <DeckSettings />
                     
                     <Button 
                         variant="primary" 
                         onClick={handleSave} 
                         disabled={isSaving}
-                        className="flex items-center gap-2 shadow-[0_0_15px_rgba(8,217,214,0.3)]"
+                        className="flex items-center gap-2 h-10 px-4 rounded-md shadow-[0_0_15px_rgba(8,217,214,0.3)]"
                     >
                         {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                        {isSaving ? 'SAVING...' : 'SAVE DECK'}
+                        {isSaving ? 'SAVING...' : 'SAVE'}
                     </Button>
                 </div>
             </div>
