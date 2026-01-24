@@ -2,10 +2,11 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { Save, Loader2 } from 'lucide-react';
+import { Save, Loader2, Settings, X } from 'lucide-react';
 import { useBuilderStore } from '@/store/builder-store';
-import { saveDeck, SavedDeckCard } from '@/app/deck/[id]/actions';
+import { saveDeck, SavedDeckCard, updateDeckMetadata } from '@/app/deck/[id]/actions';
 import { toast } from 'sonner';
+import { Input } from '@/components/ui/Input';
 
 interface DeckHeaderProps {
   deckId: string;
@@ -16,6 +17,12 @@ interface DeckHeaderProps {
 export const DeckHeader = ({ deckId, name, format }: DeckHeaderProps) => {
   const { mainDeck, extraDeck, sideDeck, unsavedChanges } = useBuilderStore();
   const [isSaving, setIsSaving] = useState(false);
+  
+  // Settings Modal State
+  const [showSettings, setShowSettings] = useState(false);
+  const [newName, setNewName] = useState(name);
+  const [newFormat, setNewFormat] = useState(format || 'Advanced');
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -56,36 +63,96 @@ export const DeckHeader = ({ deckId, name, format }: DeckHeaderProps) => {
     }
   };
 
+  const handleUpdateMetadata = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setIsUpdating(true);
+      try {
+          await updateDeckMetadata(deckId, newName, newFormat);
+          toast.success('Deck settings updated');
+          setShowSettings(false);
+      } catch (error) {
+          console.error('Update failed', error);
+          toast.error('Failed to update settings');
+      } finally {
+          setIsUpdating(false);
+      }
+  };
+
   return (
-    <header className="border-b border-navy-800 bg-navy-900/95 backdrop-blur-sm z-30 shrink-0">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-            <div>
-                <h1 className="font-heading text-2xl text-cyan-500 tracking-wider font-bold glow-text-sm uppercase flex items-center gap-2">
-                    {name}
-                    {unsavedChanges && <span className="w-2 h-2 rounded-full bg-focus-amber animate-pulse" title="Unsaved Changes"></span>}
-                </h1>
-                <span className="font-mono text-[10px] text-gray-500 uppercase tracking-widest">
-                    {format || 'UNKNOWN'} OPERATION
-                </span>
-            </div>
-            
-            <div className="flex items-center gap-4">
-                <div className="hidden md:flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                    <span className="font-mono text-xs text-gray-500">SYSTEM ONLINE</span>
+    <>
+        <header className="border-b border-navy-800 bg-navy-900/95 backdrop-blur-sm z-30 shrink-0">
+            <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+                <div>
+                    <h1 className="font-heading text-2xl text-cyan-500 tracking-wider font-bold glow-text-sm uppercase flex items-center gap-2">
+                        {name}
+                        {unsavedChanges && <span className="w-2 h-2 rounded-full bg-focus-amber animate-pulse" title="Unsaved Changes"></span>}
+                    </h1>
+                    <span className="font-mono text-[10px] text-gray-500 uppercase tracking-widest">
+                        {format || 'UNKNOWN'} OPERATION
+                    </span>
                 </div>
                 
-                <Button 
-                    variant="primary" 
-                    onClick={handleSave} 
-                    disabled={isSaving}
-                    className="flex items-center gap-2 shadow-[0_0_15px_rgba(8,217,214,0.3)]"
-                >
-                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                    {isSaving ? 'SAVING...' : 'SAVE DECK'}
-                </Button>
+                <div className="flex items-center gap-4">
+                    <div className="hidden md:flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                        <span className="font-mono text-xs text-gray-500">SYSTEM ONLINE</span>
+                    </div>
+
+                    <Button variant="ghost" onClick={() => setShowSettings(true)} className="text-cyan-500 hover:text-cyan-400 hover:bg-cyan-500/10">
+                        <Settings className="w-5 h-5" />
+                    </Button>
+                    
+                    <Button 
+                        variant="primary" 
+                        onClick={handleSave} 
+                        disabled={isSaving}
+                        className="flex items-center gap-2 shadow-[0_0_15px_rgba(8,217,214,0.3)]"
+                    >
+                        {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                        {isSaving ? 'SAVING...' : 'SAVE DECK'}
+                    </Button>
+                </div>
             </div>
-        </div>
-      </header>
+        </header>
+
+        {/* Settings Modal */}
+        {showSettings && (
+            <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div className="bg-navy-900 border border-navy-700 rounded-lg p-6 max-w-md w-full shadow-2xl relative animate-in fade-in zoom-in duration-200">
+                    <button onClick={() => setShowSettings(false)} className="absolute top-4 right-4 text-gray-500 hover:text-white">
+                        <X className="w-5 h-5" />
+                    </button>
+                    <h2 className="font-heading text-xl text-white mb-6 flex items-center gap-2">
+                        <Settings className="w-5 h-5 text-cyan-500" />
+                        DECK SETTINGS
+                    </h2>
+                    <form onSubmit={handleUpdateMetadata} className="space-y-4">
+                        <div>
+                            <label className="block text-xs font-mono text-cyan-500 mb-1">DECK NAME</label>
+                            <Input value={newName} onChange={(e) => setNewName(e.target.value)} required placeholder="Enter deck name..." />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-mono text-cyan-500 mb-1">FORMAT</label>
+                            <select 
+                                value={newFormat} 
+                                onChange={(e) => setNewFormat(e.target.value)}
+                                className="w-full bg-navy-950 border border-navy-700 rounded px-3 py-2 text-white focus:border-cyan-500 focus:outline-none font-mono text-sm"
+                            >
+                                <option value="Advanced">Advanced</option>
+                                <option value="Speed">Speed Duel</option>
+                                <option value="Time Wizard">Time Wizard</option>
+                            </select>
+                        </div>
+                        <div className="pt-4 flex justify-end gap-2 border-t border-navy-800 mt-6">
+                            <Button type="button" variant="ghost" onClick={() => setShowSettings(false)}>CANCEL</Button>
+                            <Button type="submit" variant="primary" disabled={isUpdating}>
+                                {isUpdating ? 'SAVING...' : 'SAVE METADATA'}
+                            </Button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        )}
+    </>
   );
 };

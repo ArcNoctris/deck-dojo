@@ -16,7 +16,7 @@ export default async function DashboardPage() {
 
   const { data: decks } = await supabase
     .from('decks')
-    .select('*')
+    .select('*, cover_card:cards(image_url, image_url_small)')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
