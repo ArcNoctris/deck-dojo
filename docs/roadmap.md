@@ -35,9 +35,9 @@
 ## Phase 3: The Dojo (Sprint 3)
 *Goal: Test decks and simulate hands (Simulation & Math).*
 
-- [ ] **Task 3.1: The Shuffle Engine (Test Hand Simulator)**
-- [ ] **Task 3.2: The Combo Tester (Playmat Logic)**
-- [ ] **Task 3.3: Hypergeometric Calculator**
+- [x] **Task 3.1: The Shuffle Engine (Test Hand Simulator)**
+- [ ] **Task 3.2: The Combo Tester (Playmat Logic)** [Skipped]
+- [ ] **Task 3.3: Hypergeometric Calculator** [In Progress]
 - [ ] **Task 3.4: Deck Analysis Dashboard**
 
 ## Phase 4: The Arena (Sprint 4)

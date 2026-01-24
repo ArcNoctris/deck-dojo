@@ -7,7 +7,8 @@ import { drawHand } from '@/utils/simulation/shuffler';
 import { DeckCard } from '@/types/deck';
 import { Button } from '@/components/ui/Button';
 import { CyberCard } from '@/components/ui/CyberCard';
-import { FlaskConical, RefreshCw, Plus } from 'lucide-react';
+import { FlaskConical, RefreshCw, Plus, Calculator } from 'lucide-react';
+import { DeckStats } from './DeckStats';
 
 export const TestHandModal = () => {
     const { mainDeck } = useBuilderStore();
@@ -134,6 +135,14 @@ export const TestHandModal = () => {
                                 <Plus className="w-6 h-6" />
                                 DRAW CARD
                             </Button>
+                        </div>
+
+                        {/* Deck Stats */}
+                        <div className="border-t border-navy-800 mt-8 pt-6 w-full shrink-0">
+                            <h3 className="font-heading text-xl text-cyan-500 mb-6 flex items-center gap-2">
+                                <Calculator className="w-5 h-5" /> DECK ANALYTICS
+                            </h3>
+                            <DeckStats />
                         </div>
                      </div>
                 </Drawer.Content>
