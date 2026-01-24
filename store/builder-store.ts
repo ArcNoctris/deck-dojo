@@ -20,6 +20,7 @@ interface BuilderActions {
   addCard: (card: Card, location: 'main' | 'extra' | 'side') => void;
   removeCard: (instanceId: string, location: 'main' | 'extra' | 'side') => void;
   setCardTag: (instanceId: string, location: 'main' | 'extra' | 'side', tag: UserTag) => void;
+  moveCard: (instanceId: string, fromZone: 'main' | 'extra' | 'side', toZone: 'main' | 'extra' | 'side') => void;
   clearDeck: () => void;
   loadDeck: (main: DeckCard[], extra: DeckCard[], side: DeckCard[]) => void;
   
@@ -118,6 +119,28 @@ export const useBuilderStore = create<BuilderStore>()(
             ),
             unsavedChanges: true,
           };
+        });
+      },
+
+      moveCard: (instanceId, fromZone, toZone) => {
+        set((state) => {
+            const fromKey = fromZone === 'main' ? 'mainDeck' : fromZone === 'extra' ? 'extraDeck' : 'sideDeck';
+            const toKey = toZone === 'main' ? 'mainDeck' : toZone === 'extra' ? 'extraDeck' : 'sideDeck';
+            
+            const card = state[fromKey].find(c => c.instanceId === instanceId);
+            if (!card) return state;
+
+            const targetDeck = state[toKey];
+            if (toZone === 'main' && targetDeck.length >= MAX_MAIN) return state;
+            if (toZone === 'extra' && targetDeck.length >= MAX_EXTRA) return state;
+            if (toZone === 'side' && targetDeck.length >= MAX_SIDE) return state;
+
+            return {
+                ...state,
+                [fromKey]: state[fromKey].filter(c => c.instanceId !== instanceId),
+                [toKey]: [...targetDeck, card],
+                unsavedChanges: true
+            };
         });
       },
 
