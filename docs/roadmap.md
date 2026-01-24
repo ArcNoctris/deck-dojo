@@ -15,21 +15,30 @@
 - [x] **Deck Dashboard:** View list of created decks.
 - [x] **Create New Deck:** Initialize a new empty deck (Server Action).
 - [x] **Card Drawer & Virtual List:** Vaul Drawer, Virtual List, Search Logic.
-- [ ] **Card Search Interface:**
-    - [ ] Search bar with debounce.
-    - [ ] Filters (Type, Attribute, Level).
-    - [ ] Virtualized list for performance.
-- [ ] **Deck Building Mechanics:**
-    - [ ] Add card to Main/Side/Extra deck.
-    - [ ] Remove card.
-    - [ ] Card counts (max 3 rule).
+- [x] **Card Search Interface:**
+    - [x] Search bar with debounce.
+    - [x] Filters (Type, Attribute, Level).
+    - [x] Virtualized list for performance.
+- [x] **Deck Building Mechanics:**
+    - [x] Add card to Main/Side/Extra deck.
+    - [x] Remove card.
+    - [x] Card counts (max 3 rule).
 - [x] **Visual Deck View:** Workbench Grid, Tabs, Empty States.
 - [x] **Save System:** Persist deck changes (Server Actions, Hydration, Save Logic).
 
+### Sprint 2.6: Polish & UX
+- [x] **View Engine** (Grid/List/Compact Modes)
+- [x] **"Command Center" Layout Refactor**
+- [x] **Card Interactions** (Context Menu/Side Decking)
+- [x] **Validation Console** (Banlist & Limits)
+
 ## Phase 3: The Dojo (Sprint 3)
-*Goal: Test decks and simulate hands.*
-- [ ] Test Hand Simulator (Draw 5 cards).
-- [ ] Combo Testing.
+*Goal: Test decks and simulate hands (Simulation & Math).*
+
+- [ ] **Task 3.1: The Shuffle Engine (Test Hand Simulator)**
+- [ ] **Task 3.2: The Combo Tester (Playmat Logic)**
+- [ ] **Task 3.3: Hypergeometric Calculator**
+- [ ] **Task 3.4: Deck Analysis Dashboard**
 
 ## Phase 4: The Arena (Sprint 4)
 *Goal: Match tracking and analytics.*
