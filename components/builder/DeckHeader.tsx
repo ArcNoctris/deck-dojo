@@ -136,7 +136,7 @@ export const DeckHeader = ({ deckId, name, format }: DeckHeaderProps) => {
                             <select 
                                 value={newFormat} 
                                 onChange={(e) => setNewFormat(e.target.value)}
-                                className="w-full bg-navy-950 border border-navy-700 rounded px-3 py-2 text-white focus:border-cyan-500 focus:outline-none font-mono text-sm"
+                                className="w-full bg-navy-900 border border-navy-700 rounded px-3 py-2 text-white focus:border-cyan-500 focus:outline-none font-mono text-sm"
                             >
                                 <option value="Advanced">Advanced</option>
                                 <option value="Speed">Speed Duel</option>

@@ -1,16 +1,24 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Drawer } from 'vaul';
 import { useDebounce } from 'use-debounce';
 import { Input } from '@/components/ui/Input';
 import { VirtualCardList } from './VirtualCardList';
+import { FilterPanel } from './FilterPanel';
 import { Button } from '@/components/ui/Button';
-import { Search, ChevronUp, Database } from 'lucide-react';
+import { Database } from 'lucide-react';
+import { useBuilderStore } from '@/store/builder-store';
 
 export const CardDrawer = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [debouncedSearch] = useDebounce(searchTerm, 300);
+  const [localSearch, setLocalSearch] = useState('');
+  const [debouncedSearch] = useDebounce(localSearch, 300);
+  const { setFilters } = useBuilderStore();
+
+  // Sync debounced search to store
+  useEffect(() => {
+    setFilters({ text: debouncedSearch });
+  }, [debouncedSearch, setFilters]);
 
   return (
     <Drawer.Root shouldScaleBackground>
@@ -29,7 +37,7 @@ export const CardDrawer = () => {
           {/* Handle */}
           <div className="mx-auto w-16 h-1.5 flex-shrink-0 rounded-full bg-navy-800 mt-4 mb-2" />
           
-          <div className="px-5 pb-4">
+          <div className="px-5 pb-0">
             <div className="flex items-center justify-between mb-4">
                 <h2 className="font-heading text-xl text-cyan-500 tracking-widest uppercase flex items-center gap-2 glow-text-sm">
                     <Database className="w-5 h-5" /> ARMORY_DB
@@ -39,18 +47,20 @@ export const CardDrawer = () => {
             
             <Input 
                 placeholder="SEARCH_QUERY..." 
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={localSearch}
+                onChange={(e) => setLocalSearch(e.target.value)}
                 autoFocus
-                className="w-full text-lg h-12"
+                className="w-full text-lg h-12 mb-4"
                 containerClassName="shadow-lg"
             />
           </div>
 
+          <FilterPanel />
+
           <div className="flex-1 bg-navy-900 border-t border-navy-800 min-h-0 relative">
-             {/* Decorative grid background if possible, or just solid */}
+             {/* Decorative grid background */}
              <div className="absolute inset-0 bg-[linear-gradient(rgba(8,217,214,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(8,217,214,0.02)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none"></div>
-            <VirtualCardList searchTerm={debouncedSearch} />
+            <VirtualCardList />
           </div>
         </Drawer.Content>
       </Drawer.Portal>

@@ -72,3 +72,9 @@ input, textarea, select {
     background: transparent;
     outline: none;
 }
+
+/* Fix for Select Options in Dark Mode */
+select option {
+    background-color: var(--color-navy-900);
+    color: var(--color-cyan-50);
+}

@@ -6,18 +6,20 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { createClient } from '@/utils/supabase/client';
 import { CardRow } from './CardRow';
 import { Card } from '@/types/database.types';
+import { useBuilderStore } from '@/store/builder-store';
 
 const ROW_HEIGHT = 70; // Height of CardRow
 
-export const VirtualCardList = ({ searchTerm }: { searchTerm: string }) => {
+export const VirtualCardList = () => {
   const parentRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
+  const { activeFilters } = useBuilderStore();
 
   // Fetch ALL cards (cached)
   const { data: allCards = [], isLoading } = useQuery({
     queryKey: ['allCards'],
     queryFn: async () => {
-      console.log('Fetching full card database...');
+      // console.log('Fetching full card database...');
       const { data, error } = await supabase
         .from('cards')
         .select('*')
@@ -26,19 +28,66 @@ export const VirtualCardList = ({ searchTerm }: { searchTerm: string }) => {
       if (error) throw error;
       return data as Card[];
     },
-    staleTime: 1000 * 60 * 60 * 24, // 24 hours (static data mostly)
+    staleTime: 1000 * 60 * 60 * 24, // 24 hours
     refetchOnWindowFocus: false,
   });
 
   // Filter locally
   const filteredCards = useMemo(() => {
-    if (!searchTerm) return allCards;
-    const lowerTerm = searchTerm.toLowerCase();
-    // Simple name search. Can be expanded to type/attribute etc.
-    return allCards.filter(card => 
-      card.name.toLowerCase().includes(lowerTerm)
-    );
-  }, [allCards, searchTerm]);
+    let result = allCards;
+    
+    // Text Filter
+    if (activeFilters.text) {
+        const lowerTerm = activeFilters.text.toLowerCase();
+        result = result.filter(card => card.name.toLowerCase().includes(lowerTerm));
+    }
+
+    // Attribute Filter
+    if (activeFilters.attributes.length > 0) {
+        result = result.filter(card => 
+            card.attribute && activeFilters.attributes.includes(card.attribute)
+        );
+    }
+
+    // Race Filter (Type/Property)
+    if (activeFilters.race) {
+        result = result.filter(card => card.race === activeFilters.race);
+    }
+
+    // Archetype Filter
+    if (activeFilters.archetype) {
+        result = result.filter(card => card.archetype === activeFilters.archetype);
+    }
+
+    // Card Type Filter (Monster, Spell, Trap)
+    if (activeFilters.cardType) {
+        const type = activeFilters.cardType;
+        result = result.filter(card => {
+            if (!card.type) return false;
+            if (type === 'monster') return card.type.includes('Monster');
+            if (type === 'spell') return card.type.includes('Spell');
+            if (type === 'trap') return card.type.includes('Trap');
+            return false;
+        });
+    }
+
+    // Level/Rank/Link Filter
+    // Only apply if range is restricted or user specifically wants to filter by level
+    // We assume default [0, 13] covers everything including non-level cards (treated as 0)
+    // But if min > 0, we likely exclude Spells/Traps unless they have levels/scales.
+    const [min, max] = activeFilters.level;
+    if (min > 0 || max < 13) {
+        result = result.filter(card => {
+             // Treat nulls as 0
+             const lvl = card.level || card.scale || card.linkval || 0;
+             // If card has no level stats and is not a monster, usually it's a Spell/Trap (lvl 0).
+             // If filter is 1-12, Spells (0) are excluded. This is correct behavior for "Level 1-12".
+             return lvl >= min && lvl <= max;
+        });
+    }
+
+    return result;
+  }, [allCards, activeFilters]);
 
   // Virtualizer
   const rowVirtualizer = useVirtualizer({
