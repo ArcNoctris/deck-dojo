@@ -91,10 +91,11 @@ const StackedCard = ({ card, count, onRemove, location, isError }: { card: DeckC
 
 const Section = ({ title, cards, isStacked, onRemove, location }: { title: string, cards: DeckCard[], isStacked: boolean, onRemove: (id: string, loc: any) => void, location: 'main' | 'extra' | 'side' }) => {
     const { erroredCardIds } = useDeckValidation();
+    const { moveCard } = useBuilderStore();
+
     if (cards.length === 0) return null;
 
     let items: React.ReactNode[] = [];
-    const { moveCard } = useBuilderStore();
 
     if (isStacked) {
         const grouped = new Map<string, { card: DeckCard, count: number, instanceIds: string[] }>();

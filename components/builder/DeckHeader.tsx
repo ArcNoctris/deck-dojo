@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { Save, Loader2, Settings, X, Edit2 } from 'lucide-react';
+import { Save, Loader2, Settings, X, Edit2, ChevronLeft } from 'lucide-react';
+import Link from 'next/link';
 import { useBuilderStore } from '@/store/builder-store';
 import { saveDeck, SavedDeckCard, updateDeckMetadata } from '@/app/deck/[id]/actions';
 import { toast } from 'sonner';
@@ -85,6 +86,11 @@ export const DeckHeader = ({ deckId, name, format }: DeckHeaderProps) => {
         <header className="border-b border-navy-800 bg-navy-900/95 backdrop-blur-sm z-30 shrink-0">
             <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
                 <div className="flex items-center gap-4">
+                    <Link href="/dashboard" title="Back to Dashboard">
+                        <Button variant="ghost" className="h-8 w-8 p-0 text-gray-500 hover:text-cyan-400">
+                            <ChevronLeft className="w-5 h-5" />
+                        </Button>
+                    </Link>
                     <div>
                         <h1 className="font-heading text-2xl text-cyan-500 tracking-wider font-bold glow-text-sm uppercase flex items-center gap-2">
                             {name}

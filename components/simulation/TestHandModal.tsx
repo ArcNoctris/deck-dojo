@@ -68,9 +68,9 @@ export const TestHandModal = () => {
                      <div className="flex-1 p-6 flex flex-col min-h-0">
                         <div className="flex items-center justify-between mb-8 shrink-0">
                              <div>
-                                <h2 className="font-heading text-2xl text-cyan-500 tracking-widest uppercase flex items-center gap-2 glow-text-sm">
+                                <Drawer.Title className="font-heading text-2xl text-cyan-500 tracking-widest uppercase flex items-center gap-2 glow-text-sm">
                                     <FlaskConical className="w-6 h-6" /> BATTLE SIMULATION
-                                </h2>
+                                </Drawer.Title>
                                 <p className="font-mono text-xs text-gray-500 mt-1">
                                     Opening Hand Simulator
                                 </p>
