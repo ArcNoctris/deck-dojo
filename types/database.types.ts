@@ -51,6 +51,10 @@ export interface Card {
   image_url_small: string | null
   konami_id: number | null
   ban_status: string | null
+  race: string | null
+  archetype: string | null
+  scale: number | null
+  linkval: number | null
 }
 
 export interface Profile {

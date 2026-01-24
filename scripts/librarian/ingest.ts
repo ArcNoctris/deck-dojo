@@ -22,6 +22,10 @@ interface YgoProCard {
   level?: number
   atk?: number
   def?: number
+  race?: string
+  archetype?: string
+  scale?: number
+  linkval?: number
   card_images: {
     image_url: string
     image_url_small: string
@@ -63,6 +67,10 @@ async function ingest() {
         atk: card.atk || null,
         def: card.def || null,
         description: card.desc,
+        race: card.race || null,
+        archetype: card.archetype || null,
+        scale: card.scale || null,
+        linkval: card.linkval || null,
         image_url: card.card_images[0]?.image_url || null,
         image_url_small: card.card_images[0]?.image_url_small || null,
         ban_status: card.banlist_info?.ban_tcg || 'Unlimited',
