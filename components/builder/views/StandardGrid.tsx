@@ -13,7 +13,8 @@ const TAG_COLORS: Record<string, string> = {
     brick: 'bg-red-500',
     engine: 'bg-purple-500',
     flex: 'bg-blue-500',
-    defense: 'bg-gray-500'
+    defense: 'bg-gray-500',
+    'hand-trap': 'bg-orange-500'
 };
 
 export const StandardGrid = () => {

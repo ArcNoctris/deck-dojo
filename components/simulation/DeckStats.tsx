@@ -13,17 +13,17 @@ export const DeckStats = () => {
 
         const starters = mainDeck.filter(c => c.userTag === 'starter').length;
         const bricks = mainDeck.filter(c => c.userTag === 'brick').length;
-        const defense = mainDeck.filter(c => c.userTag === 'defense').length;
+        const handTraps = mainDeck.filter(c => c.userTag === 'hand-trap').length;
 
         // Calculate probability of opening at least 1 in a 5 card hand
         const starterProb = calculateProbability(deckSize, starters, 5, 1);
         const brickProb = calculateProbability(deckSize, bricks, 5, 1);
-        const defenseProb = calculateProbability(deckSize, defense, 5, 1);
+        const handTrapProb = calculateProbability(deckSize, handTraps, 5, 1);
 
         return {
             starters: { count: starters, prob: starterProb },
             bricks: { count: bricks, prob: brickProb },
-            defense: { count: defense, prob: defenseProb }
+            defense: { count: handTraps, prob: handTrapProb }
         };
     }, [mainDeck]);
 

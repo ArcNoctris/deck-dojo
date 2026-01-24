@@ -104,6 +104,7 @@ export const TestHandModal = () => {
                                                             card.userTag === 'starter' ? 'bg-green-500' :
                                                             card.userTag === 'brick' ? 'bg-red-500' :
                                                             card.userTag === 'extender' ? 'bg-yellow-500' :
+                                                            card.userTag === 'hand-trap' ? 'bg-orange-500' :
                                                             'bg-gray-500'
                                                         }`} />
                                                     )}

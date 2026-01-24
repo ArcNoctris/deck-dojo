@@ -73,6 +73,7 @@ export const CardContextMenu = ({ children, instanceId, location, cardType }: Ca
                         <TagItem label="Brick" color="text-red-400" onSelect={() => handleTag('brick')} />
                         <TagItem label="Engine" color="text-purple-400" onSelect={() => handleTag('engine')} />
                         <TagItem label="Flex" color="text-blue-400" onSelect={() => handleTag('flex')} />
+                        <TagItem label="Hand Trap" color="text-orange-400" onSelect={() => handleTag('hand-trap')} />
                         <TagItem label="Defense" color="text-gray-400" onSelect={() => handleTag('defense')} />
                         <ContextMenu.Separator className="h-[1px] bg-navy-700 my-1" />
                         <TagItem label="Clear Tag" color="text-white" onSelect={() => handleTag(null)} />

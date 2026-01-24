@@ -1,6 +1,6 @@
 import { Card } from './database.types';
 
-export type UserTag = 'starter' | 'extender' | 'brick' | 'engine' | 'flex' | 'defense' | null;
+export type UserTag = 'starter' | 'extender' | 'brick' | 'engine' | 'flex' | 'defense' | 'hand-trap' | null;
 
 export interface DeckCard extends Card {
   instanceId: string;

@@ -111,14 +111,26 @@ export const useBuilderStore = create<BuilderStore>()(
 
       setCardTag: (instanceId, location, tag) => {
         set((state) => {
-          const deckKey = location === 'main' ? 'mainDeck' : location === 'extra' ? 'extraDeck' : 'sideDeck';
-          return {
-            ...state,
-            [deckKey]: state[deckKey].map((c) =>
-              c.instanceId === instanceId ? { ...c, userTag: tag } : c
-            ),
-            unsavedChanges: true,
-          };
+           // Find the card definition ID first
+           const allCards = [...state.mainDeck, ...state.extraDeck, ...state.sideDeck];
+           const targetCard = allCards.find(c => c.instanceId === instanceId);
+           
+           if (!targetCard) return state;
+           
+           const cardId = targetCard.id;
+
+           // Helper to update list
+           const updateList = (list: DeckCard[]) => list.map(c => 
+             c.id === cardId ? { ...c, userTag: tag } : c
+           );
+
+           return {
+             ...state,
+             mainDeck: updateList(state.mainDeck),
+             extraDeck: updateList(state.extraDeck),
+             sideDeck: updateList(state.sideDeck),
+             unsavedChanges: true,
+           };
         });
       },
 
