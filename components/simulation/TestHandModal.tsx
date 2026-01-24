@@ -6,6 +6,7 @@ import { useBuilderStore } from '@/store/builder-store';
 import { drawHand } from '@/utils/simulation/shuffler';
 import { DeckCard } from '@/types/deck';
 import { Button } from '@/components/ui/Button';
+import { CyberCard } from '@/components/ui/CyberCard';
 import { FlaskConical, RefreshCw, Plus } from 'lucide-react';
 
 export const TestHandModal = () => {
@@ -45,7 +46,6 @@ export const TestHandModal = () => {
             onOpenChange={(open) => {
                 setIsOpen(open);
                 if (open) {
-                    // Slight delay to allow animation to start smoothly or just ensuring logic runs
                     setTimeout(handleShuffle, 0);
                 }
             }}
@@ -61,7 +61,7 @@ export const TestHandModal = () => {
             </Drawer.Trigger>
             <Drawer.Portal>
                 <Drawer.Overlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50" />
-                <Drawer.Content className="bg-navy-900 flex flex-col rounded-t-[20px] h-[90vh] mt-24 fixed bottom-0 left-0 right-0 z-50 border-t-2 border-cyan-500 shadow-[0_-10px_40px_rgba(8,217,214,0.15)] outline-none">
+                <Drawer.Content className="bg-navy-900 flex flex-col rounded-t-[20px] h-[95vh] mt-24 fixed bottom-0 left-0 right-0 z-50 border-t-2 border-cyan-500 shadow-[0_-10px_40px_rgba(8,217,214,0.15)] outline-none">
                      <div className="mx-auto w-16 h-1.5 flex-shrink-0 rounded-full bg-navy-800 mt-4 mb-2" />
                      
                      <div className="flex-1 p-6 flex flex-col min-h-0">
@@ -74,28 +74,10 @@ export const TestHandModal = () => {
                                     Opening Hand Simulator
                                 </p>
                              </div>
-                             
-                             <div className="flex gap-4">
-                                 <div className="bg-navy-800 border border-navy-700 rounded px-4 py-2 flex items-center gap-4">
-                                     <div className="flex flex-col">
-                                         <span className="text-[10px] font-mono text-gray-500 uppercase">Starters</span>
-                                         <span className={`font-heading text-xl ${stats.starters > 0 ? 'text-green-500' : 'text-gray-600'}`}>
-                                            {stats.starters}
-                                         </span>
-                                     </div>
-                                      <div className="w-px h-8 bg-navy-700"></div>
-                                      <div className="flex flex-col">
-                                         <span className="text-[10px] font-mono text-gray-500 uppercase">Bricks</span>
-                                         <span className={`font-heading text-xl ${stats.bricks > 0 ? 'text-red-500' : 'text-gray-600'}`}>
-                                            {stats.bricks}
-                                         </span>
-                                     </div>
-                                 </div>
-                             </div>
                         </div>
 
                         {/* Hand Display */}
-                        <div className="flex-1 flex items-center justify-center p-8 bg-navy-950/50 rounded-lg border border-navy-800 relative overflow-hidden min-h-0">
+                        <div className="flex-1 flex flex-col items-center justify-center p-8 bg-navy-950/50 rounded-lg border border-navy-800 relative overflow-hidden min-h-0">
                             {/* Playmat Grid Pattern */}
                             <div className="absolute inset-0 bg-[linear-gradient(rgba(8,217,214,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(8,217,214,0.03)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none"></div>
 
@@ -104,37 +86,52 @@ export const TestHandModal = () => {
                                     DECK IS EMPTY
                                 </div>
                             ) : (
-                                <div className="flex flex-wrap justify-center gap-4 z-10 max-h-full overflow-y-auto w-full">
+                                <div className="flex flex-wrap justify-center gap-4 z-10 max-h-full overflow-y-auto w-full px-4">
                                     {hand.map((card, index) => (
                                         <div 
                                             key={`${card.instanceId}-${index}`} 
-                                            className="w-32 aspect-[2/3] rounded bg-navy-800 border border-navy-700 shadow-xl hover:scale-110 transition-transform duration-200 cursor-pointer animate-in zoom-in-50 fade-in slide-in-from-bottom-4 relative group"
+                                            className="w-48 animate-in zoom-in-50 fade-in slide-in-from-bottom-4 relative group hover:scale-105 transition-transform duration-200"
                                             style={{ animationDelay: `${index * 50}ms` }}
                                         >
-                                            <img src={card.image_url_small || ''} alt={card.name} className="w-full h-full object-cover rounded" />
-                                            {/* Tag indicator if exists */}
-                                            {card.userTag && (
-                                                <div className={`absolute top-0 right-0 w-3 h-3 rounded-bl-sm z-10 ${
-                                                    card.userTag === 'starter' ? 'bg-green-500' :
-                                                    card.userTag === 'brick' ? 'bg-red-500' :
-                                                    card.userTag === 'extender' ? 'bg-yellow-500' :
-                                                    'bg-gray-500'
-                                                }`} />
-                                            )}
+                                            <CyberCard className="h-full">
+                                                 <div className="relative aspect-[2/3] w-full rounded overflow-hidden">
+                                                    <img src={card.image_url_small || ''} alt={card.name} className="w-full h-full object-cover" />
+                                                    
+                                                    {/* Tag indicator if exists */}
+                                                    {card.userTag && (
+                                                        <div className={`absolute top-0 right-0 w-4 h-4 rounded-bl-sm z-10 ${
+                                                            card.userTag === 'starter' ? 'bg-green-500' :
+                                                            card.userTag === 'brick' ? 'bg-red-500' :
+                                                            card.userTag === 'extender' ? 'bg-yellow-500' :
+                                                            'bg-gray-500'
+                                                        }`} />
+                                                    )}
+                                                 </div>
+                                                 <div className="mt-2 text-center">
+                                                    <p className="font-heading text-xs text-cyan-500 truncate" title={card.name}>{card.name}</p>
+                                                 </div>
+                                            </CyberCard>
                                         </div>
                                     ))}
                                 </div>
                             )}
+                            
+                            {/* Stats Below Hand */}
+                             <div className="mt-6 z-10 bg-navy-900/80 backdrop-blur border border-navy-700 rounded-full px-6 py-2 shadow-lg">
+                                 <span className="font-mono text-sm text-gray-400">
+                                    Hand Value: <span className="text-green-500 font-bold">{stats.starters} Starters</span>, <span className="text-red-500 font-bold">{stats.bricks} Bricks</span>
+                                 </span>
+                             </div>
                         </div>
 
                         {/* Controls */}
                         <div className="mt-8 flex justify-center gap-4 shrink-0">
-                            <Button onClick={handleShuffle} variant="primary" className="h-12 px-8 text-lg gap-2 shadow-[0_0_20px_rgba(8,217,214,0.2)]">
-                                <RefreshCw className="w-5 h-5" />
+                            <Button onClick={handleShuffle} variant="primary" className="h-14 px-10 text-xl gap-3 shadow-[0_0_20px_rgba(8,217,214,0.2)] tracking-wider">
+                                <RefreshCw className="w-6 h-6" />
                                 SHUFFLE & DRAW
                             </Button>
-                            <Button onClick={handleDrawOne} variant="ghost" className="h-12 px-8 text-lg gap-2 border border-cyan-500/20 hover:bg-cyan-500/10 text-cyan-500" disabled={remainingDeck.length === 0}>
-                                <Plus className="w-5 h-5" />
+                            <Button onClick={handleDrawOne} variant="ghost" className="h-14 px-8 text-xl gap-2 border border-cyan-500/20 hover:bg-cyan-500/10 text-cyan-500" disabled={remainingDeck.length === 0}>
+                                <Plus className="w-6 h-6" />
                                 DRAW CARD
                             </Button>
                         </div>
