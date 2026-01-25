@@ -113,7 +113,7 @@ export const DeckHeader = ({ deckId, name, format }: DeckHeaderProps) => {
                     </div>
 
                     <VersionSelector deckId={deckId} />
-                    <TestHandModal />
+                    <TestHandModal deckId={deckId} />
                     <DeckSettings />
                     
                     <Button 
