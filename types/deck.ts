@@ -8,6 +8,7 @@ export interface DeckCard extends Card {
 }
 
 export interface DeckState {
+  versionId: string | null;
   mainDeck: DeckCard[];
   extraDeck: DeckCard[];
   sideDeck: DeckCard[];

@@ -13,13 +13,23 @@ export const DeckManager = ({ deckId }: { deckId: string }) => {
   useEffect(() => {
     const fetchDeck = async () => {
       try {
-        const data = await getDeckCards(deckId);
+        const result = await getDeckCards(deckId);
         
+        let cardsData: any[] = [];
+        let versionId: string | null = null;
+
+        if (Array.isArray(result)) {
+            cardsData = [];
+        } else {
+            cardsData = result.cards;
+            versionId = result.versionId || null;
+        }
+
         const mainDeck: DeckCard[] = [];
         const extraDeck: DeckCard[] = [];
         const sideDeck: DeckCard[] = [];
 
-        data.forEach((row: any) => {
+        cardsData.forEach((row: any) => {
           const cardData = row.card as Card;
           const count = row.quantity || 1;
           const tag = row.user_tag as UserTag;
@@ -38,7 +48,7 @@ export const DeckManager = ({ deckId }: { deckId: string }) => {
           }
         });
 
-        loadDeck(mainDeck, extraDeck, sideDeck);
+        loadDeck(deckId, versionId, mainDeck, extraDeck, sideDeck);
         // Optional: toast.success('Deck loaded');
       } catch (error) {
         console.error('Failed to load deck', error);

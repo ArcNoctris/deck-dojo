@@ -40,8 +40,18 @@ export async function getDeckCards(deckId: string, versionId?: string) {
       if (latest) {
           targetVersionId = latest.id;
       } else {
-          // Fallback if migration hasn't run or something (should be handled by migration)
-          return [];
+          // Auto-repair: Create v1.0 if missing (migration should have handled this, but for safety)
+          const { data: newV, error: createError } = await supabase
+            .from('deck_versions')
+            .insert({ deck_id: deckId, name: 'v1.0' })
+            .select('id')
+            .single();
+            
+          if (createError || !newV) {
+              console.error('Failed to auto-create version:', createError);
+              throw new Error('No version found and failed to create one');
+          }
+          targetVersionId = newV.id;
       }
   }
 
@@ -78,11 +88,13 @@ export async function getDeckCards(deckId: string, versionId?: string) {
       tagsData?.forEach(t => tagMap.set(t.card_id, t.tag as UserTag));
   }
 
-  return cardsData.map(c => ({
+  const cards = cardsData.map(c => ({
       ...c,
       deck_id: deckId,
       user_tag: tagMap.get(c.card_id) || null
   }));
+
+  return { versionId: targetVersionId, cards };
 }
 
 export async function updateDeckMetadata(deckId: string, name: string, format: string) {

@@ -18,7 +18,7 @@ interface DeckHeaderProps {
 }
 
 export const DeckHeader = ({ deckId, name, format }: DeckHeaderProps) => {
-  const { mainDeck, extraDeck, sideDeck, unsavedChanges } = useBuilderStore();
+  const { mainDeck, extraDeck, sideDeck, unsavedChanges, versionId } = useBuilderStore();
   const [isSaving, setIsSaving] = useState(false);
   
   // Settings Modal State
@@ -55,7 +55,7 @@ export const DeckHeader = ({ deckId, name, format }: DeckHeaderProps) => {
         }
       });
 
-      await saveDeck(deckId, Array.from(grouped.values()));
+      await saveDeck(deckId, Array.from(grouped.values()), versionId || undefined);
       toast.success('Deck saved successfully');
       useBuilderStore.setState({ unsavedChanges: false }); // Reset dirty flag
     } catch (error) {

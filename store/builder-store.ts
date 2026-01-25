@@ -22,7 +22,7 @@ interface BuilderActions {
   setCardTag: (instanceId: string, location: 'main' | 'extra' | 'side', tag: UserTag) => void;
   moveCard: (instanceId: string, fromZone: 'main' | 'extra' | 'side', toZone: 'main' | 'extra' | 'side') => void;
   clearDeck: () => void;
-  loadDeck: (main: DeckCard[], extra: DeckCard[], side: DeckCard[]) => void;
+  loadDeck: (deckId: string, versionId: string | null, main: DeckCard[], extra: DeckCard[], side: DeckCard[]) => void;
   
   // New Filter & Sort Actions
   setFilters: (filters: Partial<ActiveFilters>) => void;
@@ -60,6 +60,7 @@ const DEFAULT_FILTERS: ActiveFilters = {
 export const useBuilderStore = create<BuilderStore>()(
   persist(
     (set, get) => ({
+      versionId: null,
       mainDeck: [],
       extraDeck: [],
       sideDeck: [],
@@ -165,8 +166,9 @@ export const useBuilderStore = create<BuilderStore>()(
         });
       },
 
-      loadDeck: (main, extra, side) => {
+      loadDeck: (deckId, versionId, main, extra, side) => {
         set({
+          versionId,
           mainDeck: main,
           extraDeck: extra,
           sideDeck: side,
