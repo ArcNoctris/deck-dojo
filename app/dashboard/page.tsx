@@ -14,11 +14,15 @@ export default async function DashboardPage() {
     redirect('/login');
   }
 
-  const { data: decks } = await supabase
+  const { data: decks, error } = await supabase
     .from('decks')
-    .select('*, cover_card:cards(image_url, image_url_small)')
+    .select('*, cover_card:cards!decks_cover_card_id_fkey(image_url, image_url_small)')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching decks:', error);
+  }
 
   return (
     <div className="min-h-screen bg-navy-900 p-4 md:p-8">

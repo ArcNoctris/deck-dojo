@@ -1,0 +1,21 @@
+table_name,column_name,data_type,is_nullable
+deck_card_tags,deck_id,uuid,NO
+deck_card_tags,card_id,bigint,NO
+deck_card_tags,tag,text,YES
+deck_versions,id,uuid,NO
+deck_versions,deck_id,uuid,NO
+deck_versions,name,text,NO
+deck_versions,created_at,timestamp with time zone,YES
+decks,id,uuid,NO
+decks,user_id,uuid,NO
+decks,name,text,NO
+decks,format,text,YES
+decks,cover_card_id,bigint,YES
+decks,is_public,boolean,YES
+decks,win_rate,numeric,YES
+decks,created_at,timestamp with time zone,YES
+version_cards,id,uuid,NO
+version_cards,version_id,uuid,NO
+version_cards,card_id,bigint,NO
+version_cards,location,text,YES
+version_cards,quantity,integer,YES

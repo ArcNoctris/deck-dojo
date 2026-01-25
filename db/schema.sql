@@ -38,18 +38,32 @@ create table decks (
   created_at timestamp with time zone default timezone('utc'::text, now())
 );
 
--- 4. Deck Cards (The Tactical Context)
-create table deck_cards (
+-- 4. Deck Versions (Git-Style Versioning)
+create table deck_versions (
   id uuid default uuid_generate_v4() primary key,
-  deck_id uuid references decks(id) on delete cascade not null,
-  card_id bigint references cards(id) not null,
-  location text check (location in ('main', 'side', 'extra')),
-  quantity int default 1 check (quantity <= 3),
-  -- The "Tactical Zen" Math Tags
-  user_tag text check (user_tag in ('starter', 'extender', 'brick', 'engine', 'flex', 'defense'))
+  deck_id uuid references decks(id) not null,
+  name text not null,
+  created_at timestamp with time zone default timezone('utc'::text, now())
 );
 
--- 5. Matches (The Analytics)
+-- 5. Version Cards (Snapshot of cards in a version)
+create table version_cards (
+  id uuid default uuid_generate_v4() primary key,
+  version_id uuid references deck_versions(id) not null,
+  card_id bigint references cards(id) not null,
+  location text check (location in ('main', 'side', 'extra')),
+  quantity int default 1 check (quantity <= 3)
+);
+
+-- 6. Deck Card Tags (Persistent Tags across versions)
+create table deck_card_tags (
+  deck_id uuid references decks(id) not null,
+  card_id bigint references cards(id) not null,
+  tag text check (tag in ('starter', 'extender', 'brick', 'engine', 'flex', 'defense')),
+  primary key (deck_id, card_id)
+);
+
+-- 7. Matches (The Analytics)
 create table matches (
   id uuid default uuid_generate_v4() primary key,
   user_id uuid references profiles(id) not null,

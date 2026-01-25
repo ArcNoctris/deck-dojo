@@ -24,10 +24,20 @@ export interface Database {
         Insert: Deck
         Update: Partial<Deck>
       }
-      deck_cards: {
-        Row: DeckCard
-        Insert: DeckCard
-        Update: Partial<DeckCard>
+      deck_versions: {
+        Row: DeckVersion
+        Insert: DeckVersion
+        Update: Partial<DeckVersion>
+      }
+      version_cards: {
+        Row: VersionCard
+        Insert: VersionCard
+        Update: Partial<VersionCard>
+      }
+      deck_card_tags: {
+        Row: DeckCardTag
+        Insert: DeckCardTag
+        Update: Partial<DeckCardTag>
       }
       matches: {
         Row: Match
@@ -76,13 +86,25 @@ export interface Deck {
   created_at: string | null
 }
 
-export interface DeckCard {
+export interface DeckVersion {
   id: string
   deck_id: string
+  name: string
+  created_at: string | null
+}
+
+export interface VersionCard {
+  id: string
+  version_id: string
   card_id: number
   location: 'main' | 'side' | 'extra' | null
   quantity: number | null
-  user_tag: 'starter' | 'extender' | 'brick' | 'engine' | 'flex' | 'defense' | null
+}
+
+export interface DeckCardTag {
+  deck_id: string
+  card_id: number
+  tag: 'starter' | 'extender' | 'brick' | 'engine' | 'flex' | 'defense' | null
 }
 
 export interface Match {
