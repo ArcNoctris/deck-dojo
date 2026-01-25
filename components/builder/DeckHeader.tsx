@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { Input } from '@/components/ui/Input';
 import { DeckSettings } from './DeckSettings';
 import { TestHandModal } from '@/components/simulation/TestHandModal';
+import { VersionSelector } from './VersionSelector';
 
 interface DeckHeaderProps {
   deckId: string;
@@ -111,6 +112,7 @@ export const DeckHeader = ({ deckId, name, format }: DeckHeaderProps) => {
                         <span className="font-mono text-xs text-gray-500">SYSTEM ONLINE</span>
                     </div>
 
+                    <VersionSelector deckId={deckId} />
                     <TestHandModal />
                     <DeckSettings />
                     
