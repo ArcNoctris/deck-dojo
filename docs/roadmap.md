@@ -36,11 +36,15 @@
 *Goal: Test decks and simulate hands (Simulation & Math).*
 
 - [x] **Task 3.1: The Shuffle Engine (Test Hand Simulator)**
-- [ ] **Task 3.2: The Combo Tester (Playmat Logic)** [Skipped]
-- [ ] **Task 3.3: Hypergeometric Calculator** [In Progress]
-- [ ] **Task 3.4: Deck Analysis Dashboard**
+- [x] **Task 3.2: The Combo Tester** [Skipped by User Request]
+- [x] **Task 3.3: Hypergeometric Calculator** (Integrated into Stats)
+- [x] **Task 3.4: Git-Style Versioning** (Full DB Schema & Logic)
+- [x] **Task 3.5: Analytics Dashboard** (Trend Charts & Coach Logic)
 
 ## Phase 4: The Arena (Sprint 4)
 *Goal: Match tracking and analytics.*
-- [ ] Match Result Logging.
-- [ ] Win Rate Analytics.
+
+- [ ] **Task 4.1: Match Database** (Schema for tracking Wins/Losses linked to specific Versions).
+- [ ] **Task 4.2: The Match Logger** (Quick-Entry UI for "I just won against Snake-Eyes").
+- [ ] **Task 4.3: Arena Dashboard** (Win Rate Charts, Matchup Spread).
+- [ ] **Task 4.4: The "Meta-Report"** (Aggregating data).

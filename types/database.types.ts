@@ -110,10 +110,10 @@ export interface DeckCardTag {
 export interface Match {
   id: string
   user_id: string
-  deck_id: string | null
-  opponent_archetype: string | null
+  deck_version_id: string
+  opponent_deck: string | null
   result: 'win' | 'loss' | 'draw' | null
-  went_first: boolean | null
+  going_first: boolean | null
   notes: string | null
   created_at: string | null
 }

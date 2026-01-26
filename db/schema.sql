@@ -66,11 +66,11 @@ create table deck_card_tags (
 -- 7. Matches (The Analytics)
 create table matches (
   id uuid default uuid_generate_v4() primary key,
-  user_id uuid references profiles(id) not null,
-  deck_id uuid references decks(id),
-  opponent_archetype text,
+  user_id uuid references auth.users not null,
+  deck_version_id uuid references deck_versions(id) on delete cascade not null,
+  opponent_deck text,
   result text check (result in ('win', 'loss', 'draw')),
-  went_first boolean,
-  notes text, -- Side deck notes
+  going_first boolean,
+  notes text,
   created_at timestamp with time zone default timezone('utc'::text, now())
 );
