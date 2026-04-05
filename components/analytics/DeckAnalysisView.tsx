@@ -8,7 +8,8 @@ import { AverageHandBreakdown } from './AverageHandBreakdown';
 import { DeckStats } from '@/components/simulation/DeckStats';
 import { calculateProbability } from '@/utils/math/hypergeometric';
 import { DeckCard, UserTag } from '@/types/deck';
-import { Loader2 } from 'lucide-react';
+import { Loader2, BarChart3, History } from 'lucide-react';
+import { MatchHistoryList } from '@/components/arena/MatchHistoryList';
 
 interface DeckAnalysisViewProps {
   deckId?: string;
@@ -18,6 +19,7 @@ export const DeckAnalysisView = ({ deckId }: DeckAnalysisViewProps) => {
   const { mainDeck } = useBuilderStore();
   const [historyData, setHistoryData] = useState<any[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [activeTab, setActiveTab] = useState<'analytics' | 'history'>('analytics');
 
   // Calculate Current Stats
   const currentStats = useMemo(() => {
@@ -74,31 +76,55 @@ export const DeckAnalysisView = ({ deckId }: DeckAnalysisViewProps) => {
   }, [deckId]);
 
   return (
-    <div className="space-y-8 pb-8">
-        {/* Top: Current Version Audit */}
-        <div>
-            <h3 className="font-heading text-xl text-cyan-500 mb-6 flex items-center gap-2">
-                CURRENT AUDIT
-            </h3>
-            <DeckStats />
+    <div>
+        {/* Sub-Tabs */}
+        <div className="flex gap-4 mb-6 border-b border-navy-800 pb-2">
+            <button
+                onClick={() => setActiveTab('analytics')}
+                className={`text-xs font-mono uppercase tracking-widest pb-1 flex items-center gap-2 transition-colors ${activeTab === 'analytics' ? 'text-cyan-400 border-b-2 border-cyan-400' : 'text-gray-500 hover:text-white'}`}
+            >
+                <BarChart3 className="w-4 h-4" /> Analytics
+            </button>
+            <button
+                onClick={() => setActiveTab('history')}
+                className={`text-xs font-mono uppercase tracking-widest pb-1 flex items-center gap-2 transition-colors ${activeTab === 'history' ? 'text-cyan-400 border-b-2 border-cyan-400' : 'text-gray-500 hover:text-white'}`}
+            >
+                <History className="w-4 h-4" /> Match History
+            </button>
         </div>
 
-        {/* Middle: Average Hand */}
-        <AverageHandBreakdown deck={mainDeck} />
+        {activeTab === 'analytics' ? (
+            <div className="space-y-8 pb-8">
+                {/* Top: Current Version Audit */}
+                <div>
+                    <h3 className="font-heading text-xl text-cyan-500 mb-6 flex items-center gap-2">
+                        CURRENT AUDIT
+                    </h3>
+                    <DeckStats />
+                </div>
 
-        {/* Bottom: Evolution */}
-        {deckId && (
-            <div>
-                <h3 className="font-heading text-xl text-cyan-500 mb-6 flex items-center gap-2">
-                    META EVOLUTION
-                </h3>
-                {isLoadingHistory ? (
-                    <div className="h-80 flex items-center justify-center border border-navy-800 rounded-lg bg-navy-800/20">
-                        <Loader2 className="w-8 h-8 text-cyan-500 animate-spin" />
+                {/* Middle: Average Hand */}
+                <AverageHandBreakdown deck={mainDeck} />
+
+                {/* Bottom: Evolution */}
+                {deckId && (
+                    <div>
+                        <h3 className="font-heading text-xl text-cyan-500 mb-6 flex items-center gap-2">
+                            META EVOLUTION
+                        </h3>
+                        {isLoadingHistory ? (
+                            <div className="h-80 flex items-center justify-center border border-navy-800 rounded-lg bg-navy-800/20">
+                                <Loader2 className="w-8 h-8 text-cyan-500 animate-spin" />
+                            </div>
+                        ) : (
+                            <VersionTrendChart data={historyData} />
+                        )}
                     </div>
-                ) : (
-                    <VersionTrendChart data={historyData} />
                 )}
+            </div>
+        ) : (
+            <div className="pb-8">
+                {deckId ? <MatchHistoryList deckId={deckId} /> : <div className="text-gray-500">Save deck to view history.</div>}
             </div>
         )}
     </div>

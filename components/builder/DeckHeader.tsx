@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/Input';
 import { DeckSettings } from './DeckSettings';
 import { TestHandModal } from '@/components/simulation/TestHandModal';
 import { VersionSelector } from './VersionSelector';
+import { MatchLoggerModal } from '@/components/arena/MatchLoggerModal';
 
 interface DeckHeaderProps {
   deckId: string;
@@ -113,6 +114,7 @@ export const DeckHeader = ({ deckId, name, format }: DeckHeaderProps) => {
                     </div>
 
                     <VersionSelector deckId={deckId} />
+                    <MatchLoggerModal deckId={deckId} deckVersionId={versionId || ''} />
                     <TestHandModal deckId={deckId} />
                     <DeckSettings />
                     

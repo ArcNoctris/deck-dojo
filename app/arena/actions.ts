@@ -4,6 +4,7 @@ import { createClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
 
 export interface MatchData {
+  deck_id: string; // Added for revalidation
   deck_version_id: string;
   opponent_deck: string;
   result: 'win' | 'loss' | 'draw';
@@ -32,6 +33,7 @@ export async function logMatch(data: MatchData) {
     throw new Error('Failed to log match');
   }
 
+  revalidatePath(`/deck/${data.deck_id}`);
   return { success: true };
 }
 
