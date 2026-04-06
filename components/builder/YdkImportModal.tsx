@@ -8,6 +8,7 @@ import { parseYDK } from '@/utils/ydk-parser';
 import { fetchCardsByKonamiIds } from '@/app/deck/[id]/actions';
 import { useBuilderStore } from '@/store/builder-store';
 import { toast } from 'sonner';
+import { generateId } from '@/utils/uuid';
 
 export const YdkImportModal = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
   const [ydkString, setYdkString] = useState('');
@@ -44,7 +45,7 @@ export const YdkImportModal = ({ open, onClose }: { open: boolean; onClose: () =
           if (card) {
             zoneCards.push({
               ...card,
-              instanceId: crypto.randomUUID(),
+              instanceId: generateId(),
               userTag: null,
               location: loc,
               card_id: id // keep reference for save

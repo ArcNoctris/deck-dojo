@@ -6,6 +6,7 @@ import { useBuilderStore } from '@/store/builder-store';
 import { DeckCard, UserTag } from '@/types/deck';
 import { Card } from '@/types/database.types';
 import { toast } from 'sonner';
+import { generateId } from '@/utils/uuid';
 
 export const DeckManager = ({ deckId }: { deckId: string }) => {
   const loadDeck = useBuilderStore((state) => state.loadDeck);
@@ -38,7 +39,7 @@ export const DeckManager = ({ deckId }: { deckId: string }) => {
           for (let i = 0; i < count; i++) {
             const deckCard: DeckCard = {
               ...cardData,
-              instanceId: crypto.randomUUID(),
+              instanceId: generateId(),
               userTag: tag
             };
 

@@ -6,10 +6,14 @@ export default function LoginPage() {
   const handleLogin = async () => {
     const supabase = createClient()
     const origin = window.location.origin
+    
+    // Explicitly determine redirect URL based on current origin so the callback knows where to route
+    const redirectUrl = new URL('/auth/callback', origin).toString()
+    
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${origin}/auth/callback`,
+        redirectTo: redirectUrl,
       },
     })
   }

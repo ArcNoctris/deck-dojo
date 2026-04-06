@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Card } from '../types/database.types';
 import { DeckCard, DeckState, UserTag } from '../types/deck';
+import { generateId } from '@/utils/uuid';
 
 export interface ActiveFilters {
   text: string;
@@ -92,7 +93,7 @@ export const useBuilderStore = create<BuilderStore>()(
 
         const newCard: DeckCard = {
           ...card,
-          instanceId: crypto.randomUUID(),
+          instanceId: generateId(),
           userTag: null,
         };
 

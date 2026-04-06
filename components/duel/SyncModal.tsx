@@ -17,6 +17,7 @@ interface SyncModalProps {
 
 export const SyncModal = ({ open, onClose, roomId, createRoom, leaveRoom }: SyncModalProps) => {
     const [localLink, setLocalLink] = useState('');
+    const [joinCode, setJoinCode] = useState('');
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -26,6 +27,16 @@ export const SyncModal = ({ open, onClose, roomId, createRoom, leaveRoom }: Sync
 
     const handleCreate = () => {
         createRoom();
+    };
+
+    const handleJoin = () => {
+        if (joinCode.trim().length === 6) {
+            if (typeof window !== 'undefined') {
+                window.location.href = `/duel?room=${joinCode.trim().toUpperCase()}`;
+            }
+        } else {
+            toast.error("Please enter a valid 6-character room code.");
+        }
     };
 
     const handleCopy = () => {
@@ -57,9 +68,23 @@ export const SyncModal = ({ open, onClose, roomId, createRoom, leaveRoom }: Sync
                             <p className="text-sm font-mono text-gray-400 mb-6">
                                 Create a room to sync Life Points, timers, and dice rolls with your opponent in real-time.
                             </p>
-                            <Button variant="primary" onClick={handleCreate} className="w-full h-12 text-lg tracking-widest font-heading font-bold shadow-[0_0_20px_rgba(8,217,214,0.3)]">
+                            <Button variant="primary" onClick={handleCreate} className="w-full h-12 text-lg tracking-widest font-heading font-bold shadow-[0_0_20px_rgba(8,217,214,0.3)] mb-6">
                                 GENERATE ROOM CODE
                             </Button>
+                            
+                            <div className="flex items-center gap-2 border-t border-navy-800 pt-6">
+                                <input 
+                                    type="text" 
+                                    value={joinCode}
+                                    onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                                    placeholder="ENTER 6-CHAR CODE"
+                                    maxLength={6}
+                                    className="flex-1 bg-navy-950 border border-navy-800 rounded-lg p-3 font-mono text-center tracking-[0.2em] focus:border-cyan-500 outline-none uppercase"
+                                />
+                                <Button variant="ghost" onClick={handleJoin} className="h-12 border border-cyan-500/30 text-cyan-500 hover:bg-cyan-500/10 shrink-0">
+                                    JOIN
+                                </Button>
+                            </div>
                         </div>
                     ) : (
                         <div className="flex flex-col items-center">

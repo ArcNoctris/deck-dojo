@@ -10,6 +10,7 @@ import { DeckVersion } from '@/types/database.types';
 import { toast } from 'sonner';
 import { DeckCard, UserTag } from '@/types/deck';
 import { Card } from '@/types/database.types';
+import { generateId } from '@/utils/uuid';
 
 export const VersionSelector = ({ deckId }: { deckId: string }) => {
     const { versionId, loadDeck } = useBuilderStore();
@@ -66,7 +67,7 @@ export const VersionSelector = ({ deckId }: { deckId: string }) => {
                 for (let i = 0; i < count; i++) {
                     const deckCard: DeckCard = {
                         ...cardData,
-                        instanceId: crypto.randomUUID(),
+                        instanceId: generateId(),
                         userTag: tag
                     };
 
