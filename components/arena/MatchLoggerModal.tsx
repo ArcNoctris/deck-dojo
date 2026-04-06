@@ -85,9 +85,26 @@ export const MatchLoggerModal = ({ deckId, deckVersionId }: MatchLoggerModalProp
                         value={opponentDeck} 
                         onChange={(e) => setOpponentDeck(e.target.value)} 
                         placeholder="e.g. Snake-Eyes" 
+                        list="meta-decks"
                         autoFocus
                         className="h-12 text-lg"
                     />
+                    <datalist id="meta-decks">
+                        <option value="Snake-Eye" />
+                        <option value="Tenpai Dragon" />
+                        <option value="Yubel" />
+                        <option value="Voiceless Voice" />
+                        <option value="Kashtira" />
+                        <option value="Tearlaments" />
+                        <option value="Branded Despia" />
+                        <option value="Labrynth" />
+                        <option value="Purrely" />
+                        <option value="Rescue-ACE" />
+                        <option value="Floowandereeze" />
+                        <option value="Centur-Ion" />
+                        <option value="Gimmick Puppet" />
+                        <option value="White Woods" />
+                    </datalist>
                 </div>
 
                 {/* Dice Roll */}
