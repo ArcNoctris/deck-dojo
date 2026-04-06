@@ -2,7 +2,9 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { Save, Loader2, Settings, X, Edit2, ChevronLeft } from 'lucide-react';
+import { Menu, Transition } from '@headlessui/react';
+import { MoreVertical, Save, Loader2, Settings, X, Edit2, ChevronLeft, Upload } from 'lucide-react';
+import { Fragment } from 'react';
 import Link from 'next/link';
 import { useBuilderStore } from '@/store/builder-store';
 import { saveDeck, SavedDeckCard, updateDeckMetadata } from '@/app/deck/[id]/actions';
@@ -12,6 +14,8 @@ import { DeckSettings } from './DeckSettings';
 import { TestHandModal } from '@/components/simulation/TestHandModal';
 import { VersionSelector } from './VersionSelector';
 import { MatchLoggerModal } from '@/components/arena/MatchLoggerModal';
+
+import { YdkImportModal } from './YdkImportModal';
 
 interface DeckHeaderProps {
   deckId: string;
@@ -28,6 +32,7 @@ export const DeckHeader = ({ deckId, name, format }: DeckHeaderProps) => {
   const [newName, setNewName] = useState(name);
   const [newFormat, setNewFormat] = useState(format || 'Advanced');
   const [isUpdating, setIsUpdating] = useState(false);
+  const [showImport, setShowImport] = useState(false);
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -113,16 +118,84 @@ export const DeckHeader = ({ deckId, name, format }: DeckHeaderProps) => {
                         <span className="font-mono text-xs text-gray-500">SYSTEM ONLINE</span>
                     </div>
 
-                    <VersionSelector deckId={deckId} />
-                    <MatchLoggerModal deckId={deckId} deckVersionId={versionId || ''} />
-                    <TestHandModal deckId={deckId} />
-                    <DeckSettings />
-                    
+                    <Menu as="div" className="relative inline-block text-left z-50">
+                        <div>
+                            <Menu.Button className="flex items-center justify-center w-10 h-10 rounded-md bg-navy-800 text-gray-400 hover:text-cyan-400 hover:bg-navy-700 transition-colors border border-navy-700 hover:border-cyan-500/50">
+                                <MoreVertical className="w-5 h-5" />
+                            </Menu.Button>
+                        </div>
+                        <Transition
+                            as={Fragment}
+                            enter="transition ease-out duration-100"
+                            enterFrom="transform opacity-0 scale-95"
+                            enterTo="transform opacity-100 scale-100"
+                            leave="transition ease-in duration-75"
+                            leaveFrom="transform opacity-100 scale-100"
+                            leaveTo="transform opacity-0 scale-95"
+                        >
+                            <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-navy-700 rounded-md bg-navy-800 border border-cyan-500/30 shadow-lg ring-1 ring-black/5 focus:outline-none">
+                                <div className="px-1 py-1">
+                                    <Menu.Item>
+                                        {({ active }) => (
+                                            <div className={`p-1 rounded-md ${active ? 'bg-navy-700' : ''}`}>
+                                                <VersionSelector deckId={deckId} />
+                                            </div>
+                                        )}
+                                    </Menu.Item>
+                                </div>
+                                <div className="px-1 py-1">
+                                    <Menu.Item>
+                                        {({ active }) => (
+                                            <button
+                                                onClick={() => setShowImport(true)}
+                                                className={`${
+                                                    active ? 'bg-navy-700 text-cyan-400' : 'text-gray-300'
+                                                } group flex w-full items-center rounded-md px-2 py-2 text-xs font-mono`}
+                                            >
+                                                <Upload className="mr-2 h-4 w-4" />
+                                                IMPORT YDK
+                                            </button>
+                                        )}
+                                    </Menu.Item>
+                                    <Menu.Item>
+                                        {({ active }) => (
+                                            <div className={`rounded-md ${active ? 'bg-navy-700' : ''} flex items-center justify-start px-2 py-1`}>
+                                                <MatchLoggerModal deckId={deckId} deckVersionId={versionId || ''} />
+                                            </div>
+                                        )}
+                                    </Menu.Item>
+                                    <Menu.Item>
+                                        {({ active }) => (
+                                            <div className={`rounded-md ${active ? 'bg-navy-700' : ''} flex items-center justify-start px-2 py-1`}>
+                                                <TestHandModal deckId={deckId} />
+                                            </div>
+                                        )}
+                                    </Menu.Item>
+                                </div>
+                                <div className="px-1 py-1">
+                                     <Menu.Item>
+                                        {({ active }) => (
+                                            <button
+                                                onClick={() => setShowSettings(true)}
+                                                className={`${
+                                                    active ? 'bg-navy-700 text-cyan-400' : 'text-gray-300'
+                                                } group flex w-full items-center rounded-md px-2 py-2 text-xs font-mono`}
+                                            >
+                                                <Settings className="mr-2 h-4 w-4" />
+                                                SETTINGS
+                                            </button>
+                                        )}
+                                    </Menu.Item>
+                                </div>
+                            </Menu.Items>
+                        </Transition>
+                    </Menu>
+
                     <Button 
                         variant="primary" 
                         onClick={handleSave} 
                         disabled={isSaving}
-                        className="flex items-center gap-2 h-10 px-4 rounded-md shadow-[0_0_15px_rgba(8,217,214,0.3)]"
+                        className="flex items-center gap-2 h-10 px-6 rounded-md shadow-[0_0_15px_rgba(8,217,214,0.3)] font-bold tracking-wider ml-2"
                     >
                         {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                         {isSaving ? 'SAVING...' : 'SAVE'}
@@ -169,6 +242,9 @@ export const DeckHeader = ({ deckId, name, format }: DeckHeaderProps) => {
                 </div>
             </div>
         )}
+
+        {/* YDK Import Modal */}
+        <YdkImportModal open={showImport} onClose={() => setShowImport(false)} />
     </>
   );
 };

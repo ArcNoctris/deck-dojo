@@ -298,6 +298,67 @@ export async function createSnapshot(deckId: string, versionName: string, stats:
   return { success: true };
 }
 
+export async function fetchCardsByKonamiIds(ids: number[]) {
+  if (!ids || ids.length === 0) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('cards')
+    .select('*')
+    .in('id', ids);
+
+  if (error) {
+    console.error('Error fetching cards by konami IDs:', error);
+    return [];
+  }
+  return data;
+}
+
+export async function getOracleRecommendations(currentCards: any[]) {
+  if (!currentCards || currentCards.length === 0) return [];
+  
+  // Find dominant archetype
+  const archetypes: Record<string, number> = {};
+  currentCards.forEach(c => {
+    if (c.archetype) {
+      archetypes[c.archetype] = (archetypes[c.archetype] || 0) + 1;
+    }
+  });
+
+  let topArchetype = null;
+  let max = 0;
+  for (const [arch, count] of Object.entries(archetypes)) {
+    if (count > max) { max = count; topArchetype = arch; }
+  }
+
+  const supabase = await createClient();
+  let query = supabase.from('cards').select('*').limit(20);
+
+  if (topArchetype) {
+    query = query.eq('archetype', topArchetype);
+  } else {
+    // If no archetype, just suggest staples or highly played cards
+    // For now we just return some high ATK cards as a fallback since we don't have playrates
+    query = query.order('atk', { ascending: false }).not('atk', 'is', null);
+  }
+
+  // Filter out cards already at 3
+  const cardCounts: Record<number, number> = {};
+  currentCards.forEach(c => { cardCounts[c.card_id || c.id] = (cardCounts[c.card_id || c.id] || 0) + 1; });
+  const maxedIds = Object.entries(cardCounts).filter(([_, count]) => count >= 3).map(([id]) => parseInt(id));
+
+  if (maxedIds.length > 0) {
+    query = query.not('id', 'in', `(${maxedIds.join(',')})`);
+  }
+
+  const { data, error } = await query;
+  
+  if (error) {
+    console.error('Oracle Error:', error);
+    return [];
+  }
+  return data;
+}
+
 export async function getSnapshots(deckId: string) {
   const supabase = await createClient();
   

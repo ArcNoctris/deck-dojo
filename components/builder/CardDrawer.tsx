@@ -7,13 +7,15 @@ import { Input } from '@/components/ui/Input';
 import { VirtualCardList } from './VirtualCardList';
 import { FilterPanel } from './FilterPanel';
 import { Button } from '@/components/ui/Button';
-import { Database } from 'lucide-react';
+import { Database, Sparkles } from 'lucide-react';
 import { useBuilderStore } from '@/store/builder-store';
+import { OracleRecommendations } from './OracleRecommendations';
 
 export const CardDrawer = () => {
   const [localSearch, setLocalSearch] = useState('');
   const [debouncedSearch] = useDebounce(localSearch, 500);
   const { setFilters } = useBuilderStore();
+  const [activeTab, setActiveTab] = useState<'search' | 'oracle'>('search');
 
   // Sync debounced search to store
   useEffect(() => {
@@ -39,28 +41,40 @@ export const CardDrawer = () => {
           
           <div className="px-5 pb-0">
             <div className="flex items-center justify-between mb-4">
-                <Drawer.Title className="font-heading text-xl text-cyan-500 tracking-widest uppercase flex items-center gap-2 glow-text-sm">
-                    <Database className="w-5 h-5" /> ARMORY_DB
-                </Drawer.Title>
+                <div className="flex items-center gap-4">
+                  <button 
+                    onClick={() => setActiveTab('search')}
+                    className={`font-heading text-xl tracking-widest uppercase flex items-center gap-2 transition-colors ${activeTab === 'search' ? 'text-cyan-500 glow-text-sm' : 'text-gray-500 hover:text-cyan-400'}`}
+                  >
+                      <Database className="w-5 h-5" /> ARMORY_DB
+                  </button>
+                  <button 
+                    onClick={() => setActiveTab('oracle')}
+                    className={`font-heading text-xl tracking-widest uppercase flex items-center gap-2 transition-colors ${activeTab === 'oracle' ? 'text-focus-amber drop-shadow-[0_0_8px_rgba(249,237,105,0.6)]' : 'text-gray-500 hover:text-focus-amber'}`}
+                  >
+                      <Sparkles className="w-5 h-5" /> THE ORACLE
+                  </button>
+                </div>
                 <span className="text-[10px] font-mono text-gray-500">V.2.0.4</span>
             </div>
             
-            <Input 
-                placeholder="SEARCH_QUERY..." 
-                value={localSearch}
-                onChange={(e) => setLocalSearch(e.target.value)}
-                autoFocus
-                className="w-full text-lg h-12 mb-4"
-                containerClassName="shadow-lg"
-            />
+            {activeTab === 'search' && (
+              <Input 
+                  placeholder="SEARCH_QUERY..." 
+                  value={localSearch}
+                  onChange={(e) => setLocalSearch(e.target.value)}
+                  autoFocus
+                  className="w-full text-lg h-12 mb-4"
+                  containerClassName="shadow-lg"
+              />
+            )}
           </div>
 
-          <FilterPanel />
+          {activeTab === 'search' && <FilterPanel />}
 
           <div className="flex-1 bg-navy-900 border-t border-navy-800 min-h-0 relative">
-             {/* Decorative grid background */}
              <div className="absolute inset-0 bg-[linear-gradient(rgba(8,217,214,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(8,217,214,0.02)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none"></div>
-            <VirtualCardList />
+            {activeTab === 'search' ? <VirtualCardList /> : <OracleRecommendations />}
           </div>
         </Drawer.Content>
       </Drawer.Portal>

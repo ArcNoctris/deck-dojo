@@ -83,23 +83,68 @@ export const FilterPanel = () => {
 
   const activeCount = activeFilters.attributes.length + (activeFilters.race ? 1 : 0) + (activeFilters.archetype ? 1 : 0) + (activeFilters.cardType ? 1 : 0);
 
+  const quickFilters = [
+      { label: 'Monster', value: 'monster' },
+      { label: 'Spell', value: 'spell' },
+      { label: 'Trap', value: 'trap' },
+      { label: 'Extra', value: 'extra' }
+  ];
+
   return (
     <div className="w-full border-b border-navy-800">
-        <div className="flex items-center justify-between px-4 py-2">
-            <Button 
-                variant="ghost" 
-                onClick={() => setIsOpen(!isOpen)}
-                className={`flex items-center gap-2 text-xs font-mono uppercase ${isOpen ? 'text-cyan-400' : 'text-gray-400'}`}
-            >
-                <Filter className="w-4 h-4" />
-                FILTERS {activeCount > 0 && <span className="bg-cyan-500 text-black px-1.5 rounded-full text-[10px] font-bold">{activeCount}</span>}
-                {isOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-            </Button>
-            {activeCount > 0 && (
-                <Button variant="ghost" onClick={clearFilters} className="text-[10px] text-red-400 hover:text-red-300 flex items-center gap-1">
-                    <X className="w-3 h-3" /> CLEAR
+        <div className="px-4 py-2">
+            {/* Quick Pills (Horizontal Scroll) */}
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide mb-2 pb-1 items-center">
+                {quickFilters.map(filter => (
+                    <button
+                        key={filter.value}
+                        onClick={() => setFilters({ cardType: activeFilters.cardType === filter.value ? null : filter.value as any })}
+                        className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-mono border transition-colors ${
+                            activeFilters.cardType === filter.value
+                                ? 'bg-cyan-500/20 border-cyan-500 text-cyan-400'
+                                : 'bg-navy-900 border-navy-700 text-gray-400 hover:text-white hover:bg-navy-800'
+                        }`}
+                    >
+                        {filter.label}
+                    </button>
+                ))}
+                
+                {sortedArchetypes.inDeck.length > 0 && (
+                    <>
+                        <div className="w-px h-6 bg-navy-700 mx-1 shrink-0" />
+                        {sortedArchetypes.inDeck.map(arch => (
+                            <button
+                                key={arch}
+                                onClick={() => setFilters({ archetype: activeFilters.archetype === arch ? null : arch })}
+                                className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-mono border transition-colors ${
+                                    activeFilters.archetype === arch
+                                        ? 'bg-focus-amber/20 border-focus-amber text-focus-amber'
+                                        : 'bg-navy-900 border-navy-700 text-gray-400 hover:text-white hover:bg-navy-800'
+                                }`}
+                            >
+                                {arch}
+                            </button>
+                        ))}
+                    </>
+                )}
+            </div>
+
+            <div className="flex items-center justify-between">
+                <Button 
+                    variant="ghost" 
+                    onClick={() => setIsOpen(!isOpen)}
+                    className={`flex items-center gap-2 text-xs font-mono uppercase ${isOpen ? 'text-cyan-400' : 'text-gray-400'}`}
+                >
+                    <Filter className="w-4 h-4" />
+                    ADVANCED FILTERS {activeCount > 0 && <span className="bg-cyan-500 text-black px-1.5 rounded-full text-[10px] font-bold">{activeCount}</span>}
+                    {isOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                 </Button>
-            )}
+                {activeCount > 0 && (
+                    <Button variant="ghost" onClick={clearFilters} className="text-[10px] text-red-400 hover:text-red-300 flex items-center gap-1">
+                        <X className="w-3 h-3" /> CLEAR
+                    </Button>
+                )}
+            </div>
         </div>
 
         {isOpen && (
@@ -129,20 +174,7 @@ export const FilterPanel = () => {
 
                     {/* Card Type & Race */}
                     <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="text-[10px] font-mono text-gray-500 uppercase mb-2 block">Card Type</label>
-                            <select 
-                                value={activeFilters.cardType || ''} 
-                                onChange={(e) => setFilters({ cardType: e.target.value as any || null })}
-                                className="w-full bg-navy-900 border border-navy-700 rounded text-sm text-white p-2 focus:border-cyan-500 focus:outline-none"
-                            >
-                                <option value="">Any</option>
-                                <option value="monster">Monster</option>
-                                <option value="spell">Spell</option>
-                                <option value="trap">Trap</option>
-                            </select>
-                        </div>
-                        <div>
+                        <div className="col-span-2">
                             <label className="text-[10px] font-mono text-gray-500 uppercase mb-2 block">Type / Property</label>
                             <select 
                                 value={activeFilters.race || ''} 

@@ -9,7 +9,7 @@ export interface ActiveFilters {
   race: string | null;
   level: [number, number];
   archetype: string | null;
-  cardType: 'monster' | 'spell' | 'trap' | null; 
+  cardType: 'monster' | 'spell' | 'trap' | 'extra' | null; 
 }
 
 export type SortMethod = 'default' | 'monster-spell-trap' | 'alphabetical';
@@ -33,6 +33,9 @@ interface BuilderActions {
   setViewMode: (mode: ViewMode) => void;
   toggleStacked: () => void;
   setDensity: (density: Density) => void;
+  
+  // Mobile UX State
+  setActivePreviewCard: (card: DeckCard | null) => void;
 }
 
 type BuilderStore = DeckState & {
@@ -41,6 +44,7 @@ type BuilderStore = DeckState & {
   viewMode: ViewMode;
   isStacked: boolean;
   density: Density;
+  activePreviewCard: DeckCard | null;
 } & BuilderActions;
 
 const MAX_MAIN = 60;
@@ -70,6 +74,9 @@ export const useBuilderStore = create<BuilderStore>()(
       viewMode: 'standard',
       isStacked: false,
       density: 'standard',
+      activePreviewCard: null,
+
+      setActivePreviewCard: (card) => set({ activePreviewCard: card }),
 
       addCard: (card, location) => {
         const state = get();

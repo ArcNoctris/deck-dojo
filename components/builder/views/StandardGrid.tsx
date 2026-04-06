@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useBuilderStore } from '@/store/builder-store';
 import { X, Layers, Box, Archive, AlertTriangle, Ban } from 'lucide-react';
+import { motion, PanInfo } from 'framer-motion';
 import { CardContextMenu } from '../CardContextMenu';
 import { UserTag } from '@/types/deck';
 import { useDeckValidation } from '../hooks/useDeckValidation';
@@ -18,7 +19,7 @@ const TAG_COLORS: Record<string, string> = {
 };
 
 export const StandardGrid = () => {
-  const { mainDeck, extraDeck, sideDeck, removeCard, moveCard, density } = useBuilderStore();
+  const { mainDeck, extraDeck, sideDeck, removeCard, moveCard, density, setActivePreviewCard } = useBuilderStore();
   const [activeTab, setActiveTab] = useState<'main' | 'extra' | 'side'>('main');
   const { erroredCardIds } = useDeckValidation();
 
@@ -80,8 +81,26 @@ export const StandardGrid = () => {
               const isError = erroredCardIds.includes(card.id);
               return (
               <CardContextMenu key={card.instanceId} instanceId={card.instanceId} location={activeTab} cardType={card.type}>
-                  <div 
-                    className={`relative group aspect-[2/3] transform transition-transform hover:scale-105 hover:z-10 ${isError ? 'ring-2 ring-red-500 rounded-sm shadow-[0_0_15px_rgba(255,46,99,0.5)]' : ''}`}
+                  <motion.div 
+                    drag="x"
+                    dragConstraints={{ left: 0, right: 0 }}
+                    dragElastic={0.5}
+                    onDragEnd={(e, info) => {
+                      if (info.offset.x < -50 || info.offset.x > 50) {
+                        removeCard(card.instanceId, activeTab);
+                      }
+                    }}
+                    onTouchStart={() => {
+                      // simple long press timeout
+                      const timer = setTimeout(() => {
+                        setActivePreviewCard(card);
+                      }, 500);
+                      // attach timer to element to clear on move/end
+                      (card as any)._previewTimer = timer;
+                    }}
+                    onTouchEnd={() => clearTimeout((card as any)._previewTimer)}
+                    onTouchMove={() => clearTimeout((card as any)._previewTimer)}
+                    className={`relative group aspect-[2/3] transform transition-transform hover:scale-105 hover:z-10 cursor-grab active:cursor-grabbing ${isError ? 'ring-2 ring-red-500 rounded-sm shadow-[0_0_15px_rgba(255,46,99,0.5)]' : ''}`}
                     onDoubleClick={() => handleDoubleClick(card.instanceId, activeTab, card.type)}
                   >
                      {/* Ban Status Overlay */}
@@ -97,11 +116,9 @@ export const StandardGrid = () => {
                         <div className="absolute top-0 left-0 bg-yellow-500 text-black font-heading font-bold text-[10px] w-5 h-5 flex items-center justify-center rounded-br-md z-20 shadow-sm border-r border-b border-black/20">2</div>
                      )}
 
-                     {/* Tag Ribbon */}
+                     {/* Tag Indicator - Elegant top border glow */}
                      {card.userTag && TAG_COLORS[card.userTag] && (
-                        <div className="absolute top-0 right-0 w-8 h-8 pointer-events-none overflow-hidden rounded-tr-sm z-20">
-                            <div className={`absolute top-0 right-0 w-12 h-4 ${TAG_COLORS[card.userTag]} opacity-90 rotate-45 translate-x-[14px] translate-y-[6px] shadow-sm`} />
-                        </div>
+                        <div className={`absolute top-0 left-0 right-0 h-1 rounded-t-sm z-20 ${TAG_COLORS[card.userTag]} shadow-[0_0_8px_currentColor] opacity-80`} />
                      )}
 
                      <button 
@@ -121,7 +138,7 @@ export const StandardGrid = () => {
                             </div>
                         )}
                      </div>
-                  </div>
+                  </motion.div>
               </CardContextMenu>
               );
             })}
