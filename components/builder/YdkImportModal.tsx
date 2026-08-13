@@ -84,15 +84,15 @@ export const YdkImportModal = ({ open, onClose }: { open: boolean; onClose: () =
     <Dialog open={open} onClose={onClose} className="relative z-[150]">
       <div className="fixed inset-0 bg-black/80" aria-hidden="true" />
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <Dialog.Panel className="mx-auto max-w-lg w-full bg-navy-900 border border-cyan-500/30 rounded-lg p-6 shadow-2xl">
+        <Dialog.Panel className="mx-auto max-w-lg w-full bg-[var(--color-arcade-surface)] border border-[var(--color-arcade-cyan)]/30 rounded-lg p-6 shadow-2xl">
           <div className="flex justify-between items-center mb-4">
             <Dialog.Title className="font-heading text-xl font-bold flex items-center gap-2">
-              <Upload className="w-5 h-5 text-cyan-500" /> IMPORT YDK
+              <Upload className="w-5 h-5 text-[var(--color-arcade-cyan)]" /> IMPORT YDK
             </Dialog.Title>
-            <button onClick={onClose} className="text-gray-500 hover:text-white"><X className="w-5 h-5" /></button>
+            <button onClick={onClose} className="text-[var(--color-arcade-text-muted)] hover:text-[var(--color-arcade-text)]"><X className="w-5 h-5" /></button>
           </div>
 
-          <p className="text-sm font-mono text-gray-400 mb-4">
+          <p className="text-sm font-mono text-[var(--color-arcade-text-muted)] mb-4">
             Paste the raw contents of a `.ydk` file below. This will overwrite your current unsaved deck.
           </p>
 
@@ -100,7 +100,7 @@ export const YdkImportModal = ({ open, onClose }: { open: boolean; onClose: () =
             value={ydkString}
             onChange={(e) => setYdkString(e.target.value)}
             placeholder="#created by ...&#10;#main&#10;89631139&#10;..."
-            className="w-full h-48 bg-navy-950 border border-navy-800 rounded p-3 font-mono text-xs text-gray-300 focus:border-cyan-500 focus:outline-none mb-4 custom-scrollbar"
+            className="w-full h-48 bg-[var(--color-arcade-bg)] border border-[var(--color-arcade-border)] rounded p-3 font-mono text-xs text-gray-300 focus:border-[var(--color-arcade-cyan)] focus:outline-none mb-4 custom-scrollbar"
           />
 
           <div className="flex justify-end gap-3">

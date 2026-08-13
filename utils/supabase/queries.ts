@@ -6,79 +6,48 @@ export async function searchCards(filters: ActiveFilters): Promise<Card[]> {
   const supabase = createClient();
   let query = supabase.from('cards').select('*');
 
-  const { text, race, attributes, level, archetype, cardType } = filters;
+  const { text, cardTypes, attributes, races, levels, archetypes, extraKinds, spellSubtypes, trapSubtypes } = filters;
 
   // 1. Text Search (Name)
   if (text && text.trim().length > 0) {
     query = query.ilike('name', `%${text.trim()}%`);
   }
 
-  // 2. Race (Type/Property)
-  if (race) {
-    query = query.eq('race', race);
+  // 2. Card Type (Monster / Spell / Trap) — OR'd together, `type` holds strings like "Normal Monster", "Spell Card".
+  if (cardTypes.length > 0) {
+    query = query.or(cardTypes.map((t) => `type.ilike.%${t}%`).join(','));
   }
 
-  // 3. Attributes
-  if (attributes && attributes.length > 0) {
-    // If multiple attributes, use 'in'
+  // 3. Extra Deck kind (Fusion / Synchro / XYZ / Link) — also matched against `type`.
+  if (extraKinds.length > 0) {
+    query = query.or(extraKinds.map((k) => `type.ilike.%${k}%`).join(','));
+  }
+
+  // 4. Attributes
+  if (attributes.length > 0) {
     query = query.in('attribute', attributes);
   }
 
-  // 4. Archetype
-  if (archetype) {
-    query = query.eq('archetype', archetype);
+  // 5. Race / Property — monster Type, Spell Property, and Trap Property all share
+  // the same `race` column in this schema (matches the YGOProDeck source data).
+  const raceValues = [...races, ...spellSubtypes, ...trapSubtypes];
+  if (raceValues.length > 0) {
+    query = query.in('race', raceValues);
   }
 
-  // 5. Card Type (Monster, Spell, Trap)
-  // The 'type' column in DB holds strings like "Normal Monster", "Spell Card", etc.
-  if (cardType) {
-    if (cardType === 'monster') {
-      query = query.ilike('type', '%Monster%');
-    } else if (cardType === 'spell') {
-      query = query.ilike('type', '%Spell%');
-    } else if (cardType === 'trap') {
-      query = query.ilike('type', '%Trap%');
-    }
+  // 6. Archetype
+  if (archetypes.length > 0) {
+    query = query.in('archetype', archetypes);
   }
 
-  // 6. Level / Rank / Link Rating
-  // Only apply if the range is not default [0, 13] or if user is searching for Monsters/Specific Levels
-  // Default store value is [0, 13].
-  // If user sets min > 0, we want cards with level >= min.
-  // Note: Spells have null level. filtering level >= 1 excludes spells.
-  const [min, max] = level;
-  
-  if (min > 0 || max < 13) {
-      // Using 'or' to include cards with null levels if they match other criteria? 
-      // No, usually if I filter Level 4-4, I only want Level 4 monsters.
-      // So straightforward gte/lte.
-      // However, we need to handle the column being potentially null for spells.
-      // Supabase filter on null col: .gte('level', 1) excludes nulls.
-      
-      // We check level OR scale OR linkval
-      // Supabase OR syntax is tricky with mixed columns.
-      // For simplicity, let's just filter on 'level' for now, OR rely on text/type filters if mostly what user wants.
-      // But Pendulums have scale, Links have linkval. 
-      // The current DB schema has 'level', 'scale', 'linkval'.
-      // If the user selects "Level 4", they might mean Level 4 Monster.
-      // If "Link 2", they mean Link Rating 2.
-      // My UI input is generic "Level/Rank/Link".
-      // I should check if ANY of these match.
-      // .or(`level.gte.${min},scale.gte.${min},linkval.gte.${min}`) AND ... max
-      // But Supabase .or() is top level usually.
-      
-      // Let's stick to 'level' column for now as the prompt implies "level?: number".
-      // Or better: Since I updated the schema to include scale and linkval, I should query them.
-      // But query complexity grows.
-      // Let's implement basic level filtering first.
-      
-      query = query.gte('level', min).lte('level', max);
+  // 7. Level / Rank / Link Rating
+  // Filtering only the `level` column is a known simplification (Pendulum scale and
+  // Link rating live in separate columns) — kept consistent with the rest of the app.
+  if (levels.length > 0) {
+    query = query.in('level', levels);
   }
 
-  // Default limit to keep it fast
   query = query.limit(100);
-
-  // Default Order
   query = query.order('name', { ascending: true });
 
   const { data, error } = await query;

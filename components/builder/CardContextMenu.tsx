@@ -44,13 +44,13 @@ export const CardContextMenu = ({ children, instanceId, location, cardType }: Ca
       </ContextMenu.Trigger>
       
       <ContextMenu.Portal>
-        <ContextMenu.Content className="min-w-[180px] bg-navy-900/95 border border-cyan-500/50 rounded-lg p-1 shadow-[0_0_20px_rgba(0,0,0,0.5)] backdrop-blur-md animate-in fade-in zoom-in duration-100 z-50 text-xs font-mono">
+        <ContextMenu.Content className="min-w-[180px] bg-[var(--color-arcade-surface)]/95 border border-[var(--color-arcade-cyan)]/50 rounded-lg p-1 shadow-[0_0_20px_rgba(0,0,0,0.5)] backdrop-blur-md animate-in fade-in zoom-in duration-100 z-50 text-xs font-mono">
             
             {/* Move Options */}
             {validTargets.map(target => (
                 <ContextMenu.Item 
                     key={target} 
-                    className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-cyan-500/10 hover:text-cyan-400 cursor-pointer outline-none text-gray-300"
+                    className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-[var(--color-arcade-cyan)]/10 hover:text-[var(--color-arcade-cyan)] cursor-pointer outline-none text-gray-300"
                     onSelect={() => handleMove(target)}
                 >
                     <ArrowLeftRight className="w-3 h-3" />
@@ -62,21 +62,21 @@ export const CardContextMenu = ({ children, instanceId, location, cardType }: Ca
 
             {/* Tag Submenu */}
             <ContextMenu.Sub>
-                <ContextMenu.SubTrigger className="flex items-center justify-between px-2 py-1.5 rounded hover:bg-cyan-500/10 hover:text-cyan-400 cursor-pointer outline-none text-gray-300">
+                <ContextMenu.SubTrigger className="flex items-center justify-between px-2 py-1.5 rounded hover:bg-[var(--color-arcade-cyan)]/10 hover:text-[var(--color-arcade-cyan)] cursor-pointer outline-none text-gray-300">
                     <span>Set Tag</span>
                     <ChevronRight className="w-3 h-3" />
                 </ContextMenu.SubTrigger>
                 <ContextMenu.Portal>
-                    <ContextMenu.SubContent className="min-w-[140px] bg-navy-900/95 border border-navy-700 rounded-lg p-1 shadow-xl ml-1 animate-in fade-in zoom-in duration-100 text-xs font-mono z-50">
+                    <ContextMenu.SubContent className="min-w-[140px] bg-[var(--color-arcade-surface)]/95 border border-[var(--color-arcade-border)] rounded-lg p-1 shadow-xl ml-1 animate-in fade-in zoom-in duration-100 text-xs font-mono z-50">
                         <TagItem label="Starter" color="text-green-400" onSelect={() => handleTag('starter')} />
                         <TagItem label="Extender" color="text-yellow-400" onSelect={() => handleTag('extender')} />
                         <TagItem label="Brick" color="text-red-400" onSelect={() => handleTag('brick')} />
                         <TagItem label="Engine" color="text-purple-400" onSelect={() => handleTag('engine')} />
                         <TagItem label="Flex" color="text-blue-400" onSelect={() => handleTag('flex')} />
                         <TagItem label="Hand Trap" color="text-orange-400" onSelect={() => handleTag('hand-trap')} />
-                        <TagItem label="Defense" color="text-gray-400" onSelect={() => handleTag('defense')} />
+                        <TagItem label="Defense" color="text-[var(--color-arcade-text-muted)]" onSelect={() => handleTag('defense')} />
                         <ContextMenu.Separator className="h-[1px] bg-navy-700 my-1" />
-                        <TagItem label="Clear Tag" color="text-white" onSelect={() => handleTag(null)} />
+                        <TagItem label="Clear Tag" color="text-[var(--color-arcade-text)]" onSelect={() => handleTag(null)} />
                     </ContextMenu.SubContent>
                 </ContextMenu.Portal>
             </ContextMenu.Sub>

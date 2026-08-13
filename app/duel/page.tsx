@@ -10,7 +10,7 @@ export default async function DuelPage({
   const initialRoomId = params?.room;
 
   return (
-    <div className="flex flex-col h-screen bg-void-black text-white overflow-hidden fixed inset-0">
+    <div className="flex flex-col h-screen bg-[var(--color-arcade-bg)] text-[var(--color-arcade-text)] overflow-hidden fixed inset-0">
       <DuelRoom initialRoomId={initialRoomId} />
     </div>
   );

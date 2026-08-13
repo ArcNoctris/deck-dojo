@@ -83,6 +83,8 @@ export interface Deck {
   cover_card_id: number | null
   is_public: boolean | null
   win_rate: number | null
+  is_favorite: boolean | null
+  is_archived: boolean | null
   created_at: string | null
 }
 

@@ -1,152 +1,172 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDuelStore } from '@/store/duel-store';
-import { Calculator, X, Minus, Plus, Delete } from 'lucide-react';
+import { X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+const PRESETS = [100, 500, 1000, 2000];
+const DIGIT_ROWS = [['1', '2', '3'], ['4', '5', '6'], ['7', '8', '9']];
+
 export const CalculatorModal = () => {
-    const { isCalculatorOpen, selectedPlayer, closeCalculator, adjustLp, halveLp, lp1, lp2 } = useDuelStore();
-    const [inputValue, setInputValue] = useState('');
-    const [operation, setOperation] = useState<'-' | '+' | null>('-');
+    const { isCalculatorOpen, selectedPlayer, closeCalculator, adjustLp, lp1, lp2 } = useDuelStore();
+    const [mode, setMode] = useState<'sub' | 'add'>('sub');
+    const [pending, setPending] = useState(0);
+    const [typingStr, setTypingStr] = useState<string | null>(null);
 
     const currentLp = selectedPlayer === 1 ? lp1 : lp2;
+    const calcName = selectedPlayer === 1 ? 'YOU' : 'OPPONENT';
 
-    // Reset when opened
     useEffect(() => {
         if (isCalculatorOpen) {
-            setInputValue('');
-            setOperation('-');
+            setMode('sub');
+            setPending(0);
+            setTypingStr(null);
         }
     }, [isCalculatorOpen]);
 
     if (!isCalculatorOpen) return null;
 
-    const handleNumberClick = (num: string) => {
-        if (inputValue.length < 5) {
-            setInputValue(prev => prev + num);
+    const pressDigit = (d: string) => {
+        const str = (typingStr || '') + d;
+        setTypingStr(str);
+        setPending(parseInt(str, 10) || 0);
+    };
+
+    const addPreset = (amount: number) => {
+        setPending(prev => prev + amount);
+        setTypingStr(null);
+    };
+
+    const pressHalve = () => {
+        setMode('sub');
+        setPending(Math.round(currentLp / 2));
+        setTypingStr(null);
+    };
+
+    const clearPending = () => {
+        setPending(0);
+        setTypingStr(null);
+    };
+
+    const confirmCalc = () => {
+        if (!selectedPlayer || pending === 0) {
+            closeCalculator();
+            return;
         }
+        adjustLp(selectedPlayer, mode === 'sub' ? -pending : pending, 'Manual adjustment');
     };
 
-    const handleDelete = () => {
-        setInputValue(prev => prev.slice(0, -1));
-    };
-
-    const handleEnter = () => {
-        if (!inputValue || !selectedPlayer) return;
-        
-        const amount = parseInt(inputValue, 10);
-        if (isNaN(amount) || amount === 0) return;
-
-        const finalAmount = operation === '-' ? -amount : amount;
-        adjustLp(selectedPlayer, finalAmount, 'Manual adjustment');
-    };
-
-    const handlePreset = (val: number) => {
-        if (!selectedPlayer) return;
-        const finalAmount = operation === '-' ? -val : val;
-        adjustLp(selectedPlayer, finalAmount, 'Preset action');
-    };
-
-    const handleHalve = () => {
-        if (selectedPlayer) halveLp(selectedPlayer);
-    };
+    const signChar = mode === 'sub' ? '−' : '+';
+    const result = mode === 'sub' ? Math.max(0, currentLp - pending) : currentLp + pending;
 
     return (
         <AnimatePresence>
-            <motion.div 
+            <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-end sm:items-center justify-center"
+                className="fixed inset-0 bg-[var(--color-arcade-surface)] z-[100] flex flex-col"
             >
-                <motion.div 
-                    initial={{ y: "100%" }}
-                    animate={{ y: 0 }}
-                    exit={{ y: "100%" }}
-                    transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                    className="w-full max-w-md bg-navy-900 border-t sm:border border-cyan-500/30 rounded-t-3xl sm:rounded-2xl p-6 shadow-[0_-10px_40px_rgba(8,217,214,0.15)] sm:shadow-[0_0_40px_rgba(8,217,214,0.15)]"
-                >
-                    <div className="flex justify-between items-center mb-6">
-                        <div>
-                            <h2 className="font-heading text-xl text-cyan-500 tracking-widest uppercase glow-text-sm">
-                                PLAYER {selectedPlayer}
-                            </h2>
-                            <p className="font-mono text-gray-400 text-sm">CURRENT: {currentLp}</p>
-                        </div>
-                        <button onClick={closeCalculator} className="p-2 text-gray-500 hover:text-white rounded-full hover:bg-navy-800 transition-colors">
-                            <X className="w-6 h-6" />
-                        </button>
-                    </div>
-
-                    {/* Display Screen */}
-                    <div className="bg-navy-950 border border-navy-800 rounded-xl p-4 mb-6 flex items-center justify-between shadow-inner">
-                        <button 
-                            onClick={() => setOperation(operation === '-' ? '+' : '-')}
-                            className={`w-12 h-12 flex items-center justify-center rounded-lg border-2 text-2xl font-bold transition-all ${
-                                operation === '-' 
-                                    ? 'bg-red-500/20 border-red-500 text-red-500 shadow-[0_0_15px_rgba(255,0,0,0.3)]' 
-                                    : 'bg-green-500/20 border-green-500 text-green-500 shadow-[0_0_15px_rgba(0,255,0,0.3)]'
-                            }`}
-                        >
-                            {operation === '-' ? <Minus /> : <Plus />}
-                        </button>
-                        
-                        <div className="font-heading text-5xl tracking-wider text-white text-right flex-1 select-none overflow-hidden">
-                            {inputValue || '0'}
-                        </div>
-                    </div>
-
-                    {/* Presets */}
-                    <div className="grid grid-cols-4 gap-2 mb-6">
-                        <PresetBtn onClick={() => handlePreset(1000)}>1000</PresetBtn>
-                        <PresetBtn onClick={() => handlePreset(500)}>500</PresetBtn>
-                        <PresetBtn onClick={() => handlePreset(100)}>100</PresetBtn>
-                        <button onClick={handleHalve} className="bg-purple-500/20 border border-purple-500 text-purple-400 font-mono text-sm rounded-lg py-2 hover:bg-purple-500 hover:text-white transition-all">
-                            1/2
-                        </button>
-                    </div>
-
-                    {/* Numpad */}
-                    <div className="grid grid-cols-3 gap-3">
-                        {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map(num => (
-                            <NumBtn key={num} onClick={() => handleNumberClick(num)}>{num}</NumBtn>
-                        ))}
-                        <NumBtn onClick={() => handleNumberClick('0')}>0</NumBtn>
-                        <NumBtn onClick={() => handleNumberClick('00')}>00</NumBtn>
-                        <button 
-                            onClick={handleDelete}
-                            className="bg-navy-800 border border-navy-700 rounded-xl flex items-center justify-center text-gray-400 hover:bg-navy-700 hover:text-white transition-colors active:scale-95 py-4"
-                        >
-                            <Delete className="w-6 h-6" />
-                        </button>
-                    </div>
-
-                    <button 
-                        onClick={handleEnter}
-                        className="w-full mt-6 bg-cyan-500 hover:bg-cyan-400 text-black font-heading font-bold text-2xl py-4 rounded-xl shadow-[0_0_20px_rgba(8,217,214,0.4)] transition-all active:scale-95 tracking-widest"
+                <div className="flex-none px-4 pt-3.5 flex items-center justify-between">
+                    <span className="font-mono font-bold text-xs tracking-wide text-[var(--color-arcade-text-muted)]">{calcName}</span>
+                    <button
+                        onClick={closeCalculator}
+                        className="w-7 h-7 bg-[var(--color-arcade-panel)] border border-[var(--color-arcade-border)] rounded-lg grid place-items-center"
                     >
-                        ENTER
+                        <X className="w-3.5 h-3.5" />
                     </button>
-                </motion.div>
+                </div>
+
+                <div className="flex-none flex flex-col items-center pt-2 pb-1">
+                    <div className="font-pixel text-[44px] leading-none text-[var(--color-arcade-text)]">{currentLp}</div>
+                    <div className="font-heading font-bold text-[17px] text-[var(--color-arcade-text-muted)] mt-1.5">
+                        {signChar} {pending} <span>=</span> <span className="text-[var(--color-arcade-cyan)]">{result}</span>
+                    </div>
+                </div>
+
+                <div className="flex-none px-4 pt-2.5 flex gap-2">
+                    <button
+                        onClick={() => setMode('sub')}
+                        className="flex-1 h-[34px] rounded-lg font-heading font-bold text-[15px]"
+                        style={{
+                            background: mode === 'sub' ? 'var(--color-arcade-red)' : 'var(--color-arcade-inset)',
+                            color: mode === 'sub' ? '#12060A' : 'var(--color-arcade-red)',
+                        }}
+                    >
+                        &minus;
+                    </button>
+                    <button
+                        onClick={() => setMode('add')}
+                        className="flex-1 h-[34px] rounded-lg border border-[var(--color-arcade-border)] font-heading font-bold text-[15px]"
+                        style={{
+                            background: mode === 'add' ? 'var(--color-arcade-green)' : 'var(--color-arcade-inset)',
+                            color: mode === 'add' ? '#04180E' : 'var(--color-arcade-green)',
+                        }}
+                    >
+                        +
+                    </button>
+                </div>
+
+                <div className="flex-none px-4 pt-2.5 grid grid-cols-4 gap-1.5">
+                    {PRESETS.map(p => (
+                        <button
+                            key={p}
+                            onClick={() => addPreset(p)}
+                            className="h-8 bg-[var(--color-arcade-panel)] border border-[var(--color-arcade-border)] rounded-md font-heading font-semibold text-[11px] text-[var(--color-arcade-text-muted)]"
+                        >
+                            +{p}
+                        </button>
+                    ))}
+                </div>
+
+                <div className="flex-1 px-4 pt-2.5 grid grid-rows-4 gap-1.5">
+                    {DIGIT_ROWS.map((row, i) => (
+                        <div key={i} className="grid grid-cols-3 gap-1.5">
+                            {row.map(d => (
+                                <NumBtn key={d} onClick={() => pressDigit(d)}>{d}</NumBtn>
+                            ))}
+                        </div>
+                    ))}
+                    <div className="grid grid-cols-3 gap-1.5">
+                        <NumBtn onClick={() => pressDigit('00')} small>00</NumBtn>
+                        <NumBtn onClick={() => pressDigit('0')}>0</NumBtn>
+                        <button
+                            onClick={clearPending}
+                            className="bg-[var(--color-arcade-inset)] border border-[var(--color-arcade-border)] rounded-lg grid place-items-center font-heading font-bold text-[13px] text-[var(--color-arcade-red)]"
+                        >
+                            CLR
+                        </button>
+                    </div>
+                </div>
+
+                <div className="flex-none px-4 pt-2.5">
+                    <button
+                        onClick={pressHalve}
+                        className="w-full h-[34px] bg-[var(--color-arcade-panel)] border border-[var(--color-arcade-border)] rounded-lg font-heading font-bold text-xs tracking-wide text-[var(--color-arcade-amber)]"
+                    >
+                        &frac12; HALVE LP
+                    </button>
+                </div>
+
+                <div className="flex-none px-4 py-4">
+                    <button
+                        onClick={confirmCalc}
+                        className="w-full h-12 bg-[var(--color-arcade-cyan)] clip-notch grid place-items-center font-pixel text-[11px] text-[var(--color-arcade-bg)]"
+                        style={{ boxShadow: '4px 4px 0 #06121A' }}
+                    >
+                        DONE
+                    </button>
+                </div>
             </motion.div>
         </AnimatePresence>
     );
 };
 
-const PresetBtn = ({ children, onClick }: { children: React.ReactNode, onClick: () => void }) => (
-    <button 
+const NumBtn = ({ children, onClick, small }: { children: React.ReactNode; onClick: () => void; small?: boolean }) => (
+    <button
         onClick={onClick}
-        className="bg-navy-800 border border-navy-700 text-gray-300 font-mono text-sm rounded-lg py-2 hover:border-cyan-500 hover:text-cyan-400 transition-colors active:bg-cyan-500/20"
-    >
-        {children}
-    </button>
-);
-
-const NumBtn = ({ children, onClick }: { children: React.ReactNode, onClick: () => void }) => (
-    <button 
-        onClick={onClick}
-        className="bg-navy-800 border border-navy-700 rounded-xl text-3xl font-heading text-white py-4 hover:bg-navy-700 hover:border-cyan-500/50 transition-colors active:scale-95"
+        className={`bg-[var(--color-arcade-panel)] border border-[var(--color-arcade-border)] rounded-lg grid place-items-center font-heading font-bold text-[var(--color-arcade-text)] active:scale-95 transition-transform ${small ? 'text-[15px]' : 'text-[17px]'}`}
     >
         {children}
     </button>

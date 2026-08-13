@@ -1,29 +1,24 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { useBuilderStore } from '@/store/builder-store';
+import { useBuilderStore, ActiveFilters } from '@/store/builder-store';
 import { useQuery } from '@tanstack/react-query';
 import { createClient } from '@/utils/supabase/client';
 import { Card } from '@/types/database.types';
-import { ChevronDown, ChevronUp, Filter, Check, X } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { Filter, X } from 'lucide-react';
+import { MultiSelectDropdown } from './MultiSelectDropdown';
 
-const ATTRIBUTES = [
-    { name: 'DARK', color: 'bg-purple-600', border: 'border-purple-400' },
-    { name: 'LIGHT', color: 'bg-yellow-500', border: 'border-yellow-300' },
-    { name: 'EARTH', color: 'bg-amber-700', border: 'border-amber-500' },
-    { name: 'WATER', color: 'bg-blue-500', border: 'border-blue-400' },
-    { name: 'FIRE', color: 'bg-red-500', border: 'border-red-400' },
-    { name: 'WIND', color: 'bg-green-500', border: 'border-green-400' },
-    { name: 'DIVINE', color: 'bg-yellow-600', border: 'border-yellow-400' },
-];
+const ATTRIBUTES = ['DARK', 'LIGHT', 'EARTH', 'WATER', 'FIRE', 'WIND', 'DIVINE'];
+const CARD_TYPES = ['Monster', 'Spell', 'Trap'];
+const EXTRA_KINDS = ['Fusion', 'Synchro', 'XYZ', 'Link'];
+
+type MultiKey = 'cardTypes' | 'attributes' | 'races' | 'levels' | 'archetypes' | 'extraKinds' | 'spellSubtypes' | 'trapSubtypes';
 
 export const FilterPanel = () => {
   const { activeFilters, setFilters, mainDeck, extraDeck, sideDeck } = useBuilderStore();
   const [isOpen, setIsOpen] = useState(false);
   const supabase = createClient();
 
-  // Fetch unique data for dropdowns
   const { data: allCards = [] } = useQuery({
     queryKey: ['allCards'],
     queryFn: async () => {
@@ -34,209 +29,167 @@ export const FilterPanel = () => {
     staleTime: 1000 * 60 * 60 * 24,
   });
 
-  const { races, archetypes } = useMemo(() => {
-      const racesSet = new Set<string>();
-      const archSet = new Set<string>();
-      
-      allCards.forEach(c => {
-          if (c.race) racesSet.add(c.race);
-          if (c.archetype) archSet.add(c.archetype);
-      });
+  const { monsterRaces, spellSubtypeOptions, trapSubtypeOptions, archetypeOptions, levelOptions } = useMemo(() => {
+    const monsterRacesSet = new Set<string>();
+    const spellSet = new Set<string>();
+    const trapSet = new Set<string>();
+    const archSet = new Set<string>();
+    const levelSet = new Set<number>();
 
-      return {
-          races: Array.from(racesSet).sort(),
-          archetypes: Array.from(archSet).sort()
-      };
+    allCards.forEach((c) => {
+      if (c.type?.includes('Monster')) {
+        if (c.race) monsterRacesSet.add(c.race);
+        if (c.level) levelSet.add(c.level);
+      } else if (c.type?.includes('Spell')) {
+        if (c.race) spellSet.add(c.race);
+      } else if (c.type?.includes('Trap')) {
+        if (c.race) trapSet.add(c.race);
+      }
+      if (c.archetype) archSet.add(c.archetype);
+    });
+
+    return {
+      monsterRaces: Array.from(monsterRacesSet).sort(),
+      spellSubtypeOptions: Array.from(spellSet).sort(),
+      trapSubtypeOptions: Array.from(trapSet).sort(),
+      archetypeOptions: Array.from(archSet).sort(),
+      levelOptions: Array.from(levelSet).sort((a, b) => a - b),
+    };
   }, [allCards]);
 
-  // Archetype logic: In-Deck vs Others
   const sortedArchetypes = useMemo(() => {
-      const deckArchetypes = new Set<string>();
-      [...mainDeck, ...extraDeck, ...sideDeck].forEach(c => {
-          if (c.archetype) deckArchetypes.add(c.archetype);
-      });
+    const deckArchetypes = new Set<string>();
+    [...mainDeck, ...extraDeck, ...sideDeck].forEach((c) => {
+      if (c.archetype) deckArchetypes.add(c.archetype);
+    });
+    return {
+      inDeck: archetypeOptions.filter((a) => deckArchetypes.has(a)),
+      others: archetypeOptions.filter((a) => !deckArchetypes.has(a)),
+    };
+  }, [archetypeOptions, mainDeck, extraDeck, sideDeck]);
 
-      const inDeck = archetypes.filter(a => deckArchetypes.has(a));
-      const others = archetypes.filter(a => !deckArchetypes.has(a));
-      
-      return { inDeck, others };
-  }, [archetypes, mainDeck, extraDeck, sideDeck]);
-
-  const toggleAttribute = (attr: string) => {
-      const current = activeFilters.attributes;
-      if (current.includes(attr)) {
-          setFilters({ attributes: current.filter(a => a !== attr) });
-      } else {
-          setFilters({ attributes: [...current, attr] });
-      }
+  const toggle = (key: MultiKey, value: string | number) => {
+    const current = activeFilters[key] as (string | number)[];
+    const next = current.includes(value) ? current.filter((v) => v !== value) : [...current, value];
+    setFilters({ [key]: next } as Partial<ActiveFilters>);
   };
 
-  const clearFilters = () => {
-      setFilters({
-          attributes: [],
-          race: null,
-          archetype: null,
-          level: [1, 12],
-          cardType: null
-      });
-  };
+  const clearAll = () => setFilters({
+    cardTypes: [], attributes: [], races: [], levels: [], archetypes: [], extraKinds: [], spellSubtypes: [], trapSubtypes: [],
+  });
 
-  const activeCount = activeFilters.attributes.length + (activeFilters.race ? 1 : 0) + (activeFilters.archetype ? 1 : 0) + (activeFilters.cardType ? 1 : 0);
+  const activeCount = activeFilters.cardTypes.length + activeFilters.attributes.length + activeFilters.races.length
+    + activeFilters.levels.length + activeFilters.archetypes.length + activeFilters.extraKinds.length
+    + activeFilters.spellSubtypes.length + activeFilters.trapSubtypes.length;
 
-  const quickFilters = [
-      { label: 'Monster', value: 'monster' },
-      { label: 'Spell', value: 'spell' },
-      { label: 'Trap', value: 'trap' },
-      { label: 'Extra', value: 'extra' }
-  ];
+  const showMonster = activeFilters.cardTypes.length === 0 || activeFilters.cardTypes.includes('Monster');
+  const showSpell = (activeFilters.cardTypes.length === 0 || activeFilters.cardTypes.includes('Spell')) && spellSubtypeOptions.length > 0;
+  const showTrap = (activeFilters.cardTypes.length === 0 || activeFilters.cardTypes.includes('Trap')) && trapSubtypeOptions.length > 0;
 
   return (
-    <div className="w-full border-b border-navy-800">
-        <div className="px-4 py-2">
-            {/* Quick Pills (Horizontal Scroll) */}
-            <div className="flex gap-2 overflow-x-auto scrollbar-hide mb-2 pb-1 items-center">
-                {quickFilters.map(filter => (
-                    <button
-                        key={filter.value}
-                        onClick={() => setFilters({ cardType: activeFilters.cardType === filter.value ? null : filter.value as any })}
-                        className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-mono border transition-colors ${
-                            activeFilters.cardType === filter.value
-                                ? 'bg-cyan-500/20 border-cyan-500 text-cyan-400'
-                                : 'bg-navy-900 border-navy-700 text-gray-400 hover:text-white hover:bg-navy-800'
-                        }`}
-                    >
-                        {filter.label}
-                    </button>
-                ))}
-                
-                {sortedArchetypes.inDeck.length > 0 && (
-                    <>
-                        <div className="w-px h-6 bg-navy-700 mx-1 shrink-0" />
-                        {sortedArchetypes.inDeck.map(arch => (
-                            <button
-                                key={arch}
-                                onClick={() => setFilters({ archetype: activeFilters.archetype === arch ? null : arch })}
-                                className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-mono border transition-colors ${
-                                    activeFilters.archetype === arch
-                                        ? 'bg-focus-amber/20 border-focus-amber text-focus-amber'
-                                        : 'bg-navy-900 border-navy-700 text-gray-400 hover:text-white hover:bg-navy-800'
-                                }`}
-                            >
-                                {arch}
-                            </button>
-                        ))}
-                    </>
-                )}
-            </div>
-
-            <div className="flex items-center justify-between">
-                <Button 
-                    variant="ghost" 
-                    onClick={() => setIsOpen(!isOpen)}
-                    className={`flex items-center gap-2 text-xs font-mono uppercase ${isOpen ? 'text-cyan-400' : 'text-gray-400'}`}
-                >
-                    <Filter className="w-4 h-4" />
-                    ADVANCED FILTERS {activeCount > 0 && <span className="bg-cyan-500 text-black px-1.5 rounded-full text-[10px] font-bold">{activeCount}</span>}
-                    {isOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                </Button>
-                {activeCount > 0 && (
-                    <Button variant="ghost" onClick={clearFilters} className="text-[10px] text-red-400 hover:text-red-300 flex items-center gap-1">
-                        <X className="w-3 h-3" /> CLEAR
-                    </Button>
-                )}
-            </div>
-        </div>
-
-        {isOpen && (
-            <div className="px-4 pb-4 animate-in slide-in-from-top-2 duration-200">
-                <div className="space-y-4">
-                    {/* Attributes */}
-                    <div>
-                        <label className="text-[10px] font-mono text-gray-500 uppercase mb-2 block">Attributes</label>
-                        <div className="flex flex-wrap gap-2">
-                            {ATTRIBUTES.map(attr => {
-                                const isSelected = activeFilters.attributes.includes(attr.name);
-                                return (
-                                    <button
-                                        key={attr.name}
-                                        onClick={() => toggleAttribute(attr.name)}
-                                        className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${
-                                            isSelected ? `${attr.color} ${attr.border} scale-110 shadow-[0_0_10px_rgba(255,255,255,0.3)]` : 'bg-navy-800 border-navy-700 opacity-60 hover:opacity-100'
-                                        }`}
-                                        title={attr.name}
-                                    >
-                                        {isSelected && <Check className="w-4 h-4 text-white drop-shadow-md" />}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
-
-                    {/* Card Type & Race */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="col-span-2">
-                            <label className="text-[10px] font-mono text-gray-500 uppercase mb-2 block">Type / Property</label>
-                            <select 
-                                value={activeFilters.race || ''} 
-                                onChange={(e) => setFilters({ race: e.target.value || null })}
-                                className="w-full bg-navy-900 border border-navy-700 rounded text-sm text-white p-2 focus:border-cyan-500 focus:outline-none"
-                            >
-                                <option value="">Any</option>
-                                {races.map(r => (
-                                    <option key={r} value={r}>{r}</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-
-                    {/* Archetype */}
-                    <div>
-                        <label className="text-[10px] font-mono text-gray-500 uppercase mb-2 block">Archetype</label>
-                        <select 
-                            value={activeFilters.archetype || ''} 
-                            onChange={(e) => setFilters({ archetype: e.target.value || null })}
-                            className="w-full bg-navy-900 border border-navy-700 rounded text-sm text-white p-2 focus:border-cyan-500 focus:outline-none"
-                        >
-                            <option value="">Any Archetype</option>
-                            {sortedArchetypes.inDeck.length > 0 && (
-                                <optgroup label="In Your Deck" className="text-cyan-400">
-                                    {sortedArchetypes.inDeck.map(a => (
-                                        <option key={a} value={a} className="text-white">{a}</option>
-                                    ))}
-                                </optgroup>
-                            )}
-                            <optgroup label="All Archetypes">
-                                {sortedArchetypes.others.map(a => (
-                                    <option key={a} value={a}>{a}</option>
-                                ))}
-                            </optgroup>
-                        </select>
-                    </div>
-
-                    {/* Level Range (Simplified as inputs for now) */}
-                    <div>
-                         <label className="text-[10px] font-mono text-gray-500 uppercase mb-2 block">Level / Rank / Link</label>
-                         <div className="flex items-center gap-2">
-                             <input 
-                                type="number" 
-                                min="0" max="13" 
-                                value={activeFilters.level[0]}
-                                onChange={(e) => setFilters({ level: [parseInt(e.target.value) || 0, activeFilters.level[1]] })}
-                                className="w-full bg-navy-900 border border-navy-700 rounded p-2 text-center text-white"
-                             />
-                             <span className="text-gray-500">-</span>
-                             <input 
-                                type="number" 
-                                min="0" max="13" 
-                                value={activeFilters.level[1]}
-                                onChange={(e) => setFilters({ level: [activeFilters.level[0], parseInt(e.target.value) || 13] })}
-                                className="w-full bg-navy-900 border border-navy-700 rounded p-2 text-center text-white"
-                             />
-                         </div>
-                    </div>
-                </div>
-            </div>
+    <>
+      <button
+        onClick={() => setIsOpen(true)}
+        className="relative flex-none w-9 h-9 bg-[var(--color-arcade-panel)] border border-[var(--color-arcade-border)] rounded-lg grid place-items-center"
+      >
+        <Filter className="w-3.5 h-3.5 text-[var(--color-arcade-text-muted)]" />
+        {activeCount > 0 && (
+          <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 bg-[var(--color-arcade-cyan)] rounded-full grid place-items-center font-mono font-bold text-[9px] text-[var(--color-arcade-bg)]">
+            {activeCount}
+          </span>
         )}
-    </div>
+      </button>
+
+      {isOpen && (
+        <div className="fixed inset-0 bg-[var(--color-arcade-bg)] z-40 flex flex-col">
+          <div className="flex-none px-4 pt-4 flex items-center justify-between">
+            <span className="font-mono font-bold text-xs tracking-widest text-[var(--color-arcade-text-muted)]">FILTERS · {activeCount}</span>
+            <button onClick={() => setIsOpen(false)} className="w-7 h-7 bg-[var(--color-arcade-panel)] border border-[var(--color-arcade-border)] rounded-lg grid place-items-center">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto thin-scroll px-4 py-3.5 flex flex-col gap-4">
+            <ChipSection label="CARD TYPE" options={CARD_TYPES} selected={activeFilters.cardTypes} onToggle={(v) => toggle('cardTypes', v)} />
+
+            {showMonster && (
+              <>
+                <ChipSection label="ATTRIBUTE" options={ATTRIBUTES} selected={activeFilters.attributes} onToggle={(v) => toggle('attributes', v)} />
+                {levelOptions.length > 0 && (
+                  <ChipSection label="LEVEL / RANK / LINK" options={levelOptions} selected={activeFilters.levels} onToggle={(v) => toggle('levels', v)} square />
+                )}
+                {monsterRaces.length > 0 && (
+                  <MultiSelectDropdown
+                    label="TYPE (RACE)"
+                    options={monsterRaces}
+                    selected={activeFilters.races as string[]}
+                    onChange={(next) => setFilters({ races: next })}
+                  />
+                )}
+                <ChipSection label="EXTRA DECK" options={EXTRA_KINDS} selected={activeFilters.extraKinds} onToggle={(v) => toggle('extraKinds', v)} />
+              </>
+            )}
+
+            {showSpell && (
+              <ChipSection label="SPELL TYPE" options={spellSubtypeOptions} selected={activeFilters.spellSubtypes} onToggle={(v) => toggle('spellSubtypes', v)} />
+            )}
+            {showTrap && (
+              <ChipSection label="TRAP TYPE" options={trapSubtypeOptions} selected={activeFilters.trapSubtypes} onToggle={(v) => toggle('trapSubtypes', v)} />
+            )}
+
+            {(sortedArchetypes.inDeck.length > 0 || sortedArchetypes.others.length > 0) && (
+              <MultiSelectDropdown
+                label="ARCHETYPE"
+                options={[...sortedArchetypes.inDeck, ...sortedArchetypes.others]}
+                selected={activeFilters.archetypes}
+                onChange={(next) => setFilters({ archetypes: next })}
+              />
+            )}
+          </div>
+
+          <div className="flex-none px-4 py-3.5 flex gap-2">
+            <button onClick={clearAll} className="flex-1 h-[42px] border border-[var(--color-arcade-border)] rounded-lg font-heading font-bold text-xs tracking-wide text-[var(--color-arcade-text-muted)]">
+              CLEAR
+            </button>
+            <button onClick={() => setIsOpen(false)} className="flex-[2] h-[42px] bg-[var(--color-arcade-cyan)] rounded-lg font-heading font-bold text-xs tracking-wide text-[var(--color-arcade-bg)]">
+              APPLY
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
+
+interface ChipSectionProps {
+  label: string;
+  options: (string | number)[];
+  selected: (string | number)[];
+  onToggle: (value: string | number) => void;
+  square?: boolean;
+}
+
+const ChipSection = ({ label, options, selected, onToggle, square }: ChipSectionProps) => (
+  <div>
+    <span className="font-mono font-bold text-[9.5px] tracking-widest text-[var(--color-arcade-cyan)]">{label}</span>
+    <div className="flex flex-wrap gap-1.5 mt-2">
+      {options.map((opt) => {
+        const active = selected.includes(opt);
+        return (
+          <button
+            key={opt}
+            onClick={() => onToggle(opt)}
+            className={`rounded-lg border font-heading font-semibold ${square ? 'w-8 h-8 grid place-items-center text-[11.5px]' : 'px-3 py-1.5 text-[11.5px]'}`}
+            style={{
+              borderColor: active ? 'var(--color-arcade-cyan)' : 'var(--color-arcade-border)',
+              background: active ? 'rgba(25,211,206,.16)' : 'var(--color-arcade-surface)',
+              color: active ? 'var(--color-arcade-cyan)' : 'var(--color-arcade-text)',
+            }}
+          >
+            {opt}
+          </button>
+        );
+      })}
+    </div>
+  </div>
+);

@@ -1,8 +1,6 @@
-import { DeckGrid } from '@/components/builder/DeckGrid';
-import { CardDrawer } from '@/components/builder/CardDrawer';
 import { DeckManager } from '@/components/builder/DeckManager';
 import { DeckHeader } from '@/components/builder/DeckHeader';
-import { DeckConsole } from '@/components/builder/DeckConsole';
+import { BuilderBody } from '@/components/builder/BuilderBody';
 import { createClient } from '@/utils/supabase/server';
 import { notFound, redirect } from 'next/navigation';
 
@@ -19,7 +17,6 @@ export default async function DeckBuilderPage({ params }: DeckPageProps) {
     redirect('/login');
   }
 
-  // Fetch Deck Metadata
   const { data: deck, error } = await supabase
     .from('decks')
     .select('*')
@@ -36,18 +33,12 @@ export default async function DeckBuilderPage({ params }: DeckPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-navy-900 flex flex-col overflow-hidden fixed inset-0">
+    <div className="min-h-screen bg-[var(--color-arcade-surface)] text-[var(--color-arcade-text)] flex flex-col overflow-hidden fixed inset-0">
       <DeckManager deckId={id} />
       <DeckHeader deckId={id} name={deck.name} format={deck.format || 'Advanced'} />
-
-      {/* Scrollable Workspace */}
       <main className="flex-1 overflow-hidden relative w-full">
-        <DeckGrid />
+        <BuilderBody />
       </main>
-
-      {/* Floating Action Button & Drawer */}
-      <CardDrawer />
-      <DeckConsole />
     </div>
   );
 }

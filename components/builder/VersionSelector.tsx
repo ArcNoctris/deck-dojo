@@ -112,7 +112,7 @@ export const VersionSelector = ({ deckId }: { deckId: string }) => {
             <Button 
                 variant="ghost" 
                 onClick={() => setIsOpen(!isOpen)}
-                className={`flex items-center gap-2 h-10 px-3 rounded-md border text-xs font-mono transition-all ${isOpen ? 'bg-navy-800 border-cyan-500 text-cyan-400' : 'border-navy-700 text-gray-400 hover:text-cyan-400 hover:bg-navy-800'}`}
+                className={`flex items-center gap-2 h-10 px-3 rounded-md border text-xs font-mono transition-all ${isOpen ? 'bg-[var(--color-arcade-panel)] border-[var(--color-arcade-cyan)] text-[var(--color-arcade-cyan)]' : 'border-[var(--color-arcade-border)] text-[var(--color-arcade-text-muted)] hover:text-[var(--color-arcade-cyan)] hover:bg-[var(--color-arcade-panel)]'}`}
             >
                 <GitBranch className="w-4 h-4" />
                 <span className="hidden sm:inline truncate max-w-[100px]">{currentName}</span>
@@ -122,20 +122,20 @@ export const VersionSelector = ({ deckId }: { deckId: string }) => {
             {isOpen && (
                 <>
                     <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
-                    <div className="absolute left-0 top-full mt-2 w-64 bg-navy-900/95 border border-cyan-500/30 rounded shadow-[0_0_30px_rgba(0,0,0,0.6)] backdrop-blur-md flex flex-col z-20 animate-in fade-in zoom-in duration-200 p-1">
-                        <div className="px-2 py-1.5 border-b border-navy-800 mb-1">
-                            <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Switch Branch</span>
+                    <div className="absolute left-0 top-full mt-2 w-64 bg-[var(--color-arcade-surface)]/95 border border-[var(--color-arcade-cyan)]/30 rounded shadow-[0_0_30px_rgba(0,0,0,0.6)] backdrop-blur-md flex flex-col z-20 animate-in fade-in zoom-in duration-200 p-1">
+                        <div className="px-2 py-1.5 border-b border-[var(--color-arcade-border)] mb-1">
+                            <span className="text-[10px] font-mono text-[var(--color-arcade-text-muted)] uppercase tracking-widest">Switch Branch</span>
                         </div>
                         
                         <div className="max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-navy-700">
                             {isLoadingVersions ? (
-                                <div className="p-4 text-center text-gray-500 text-xs animate-pulse">Loading...</div>
+                                <div className="p-4 text-center text-[var(--color-arcade-text-muted)] text-xs animate-pulse">Loading...</div>
                             ) : (
                                 versions.map(v => (
                                     <button
                                         key={v.id}
                                         onClick={() => handleSwitchVersion(v.id)}
-                                        className={`w-full text-left px-3 py-2 text-xs font-mono rounded flex items-center justify-between ${v.id === versionId ? 'bg-cyan-500/10 text-cyan-400' : 'text-gray-300 hover:bg-navy-800'}`}
+                                        className={`w-full text-left px-3 py-2 text-xs font-mono rounded flex items-center justify-between ${v.id === versionId ? 'bg-[var(--color-arcade-cyan)]/10 text-[var(--color-arcade-cyan)]' : 'text-gray-300 hover:bg-[var(--color-arcade-panel)]'}`}
                                     >
                                         <span className="truncate">{v.name}</span>
                                         {v.id === versionId && <Check className="w-3 h-3" />}
@@ -144,10 +144,10 @@ export const VersionSelector = ({ deckId }: { deckId: string }) => {
                             )}
                         </div>
 
-                        <div className="border-t border-navy-800 mt-1 pt-1">
+                        <div className="border-t border-[var(--color-arcade-border)] mt-1 pt-1">
                             <button
                                 onClick={() => { setIsOpen(false); setShowCreateModal(true); }}
-                                className="w-full text-left px-3 py-2 text-xs font-mono rounded flex items-center gap-2 text-cyan-500 hover:bg-cyan-500/10"
+                                className="w-full text-left px-3 py-2 text-xs font-mono rounded flex items-center gap-2 text-[var(--color-arcade-cyan)] hover:bg-[var(--color-arcade-cyan)]/10"
                             >
                                 <Plus className="w-3 h-3" /> Save New Version
                             </button>
@@ -158,17 +158,17 @@ export const VersionSelector = ({ deckId }: { deckId: string }) => {
 
             {showCreateModal && (
                 <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-navy-900 border border-navy-700 rounded-lg p-6 max-w-sm w-full shadow-2xl relative animate-in fade-in zoom-in duration-200">
-                        <button onClick={() => setShowCreateModal(false)} className="absolute top-4 right-4 text-gray-500 hover:text-white">
+                    <div className="bg-[var(--color-arcade-surface)] border border-[var(--color-arcade-border)] rounded-lg p-6 max-w-sm w-full shadow-2xl relative animate-in fade-in zoom-in duration-200">
+                        <button onClick={() => setShowCreateModal(false)} className="absolute top-4 right-4 text-[var(--color-arcade-text-muted)] hover:text-[var(--color-arcade-text)]">
                             <X className="w-5 h-5" />
                         </button>
-                        <h2 className="font-heading text-xl text-white mb-4 flex items-center gap-2">
-                            <GitBranch className="w-5 h-5 text-cyan-500" />
+                        <h2 className="font-heading text-xl text-[var(--color-arcade-text)] mb-4 flex items-center gap-2">
+                            <GitBranch className="w-5 h-5 text-[var(--color-arcade-cyan)]" />
                             NEW VERSION
                         </h2>
                         <form onSubmit={handleCreateVersion} className="space-y-4">
                             <div>
-                                <label className="block text-xs font-mono text-cyan-500 mb-1">VERSION NAME</label>
+                                <label className="block text-xs font-mono text-[var(--color-arcade-cyan)] mb-1">VERSION NAME</label>
                                 <Input 
                                     value={newVersionName} 
                                     onChange={(e) => setNewVersionName(e.target.value)} 

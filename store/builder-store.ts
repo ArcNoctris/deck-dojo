@@ -6,35 +6,40 @@ import { generateId } from '@/utils/uuid';
 
 export interface ActiveFilters {
   text: string;
+  cardTypes: string[]; // 'Monster' | 'Spell' | 'Trap', multi-select
   attributes: string[];
-  race: string | null;
-  level: [number, number];
-  archetype: string | null;
-  cardType: 'monster' | 'spell' | 'trap' | 'extra' | null; 
+  races: string[]; // "Type (Race)" for monsters — multi-select
+  levels: number[]; // discrete Level/Rank/Link values, multi-select
+  archetypes: string[];
+  extraKinds: string[]; // 'Fusion' | 'Synchro' | 'XYZ' | 'Link', multi-select
+  spellSubtypes: string[]; // Normal/Quick-Play/Continuous/etc — shares the `race` column
+  trapSubtypes: string[]; // Normal/Continuous/Counter — shares the `race` column
 }
 
 export type SortMethod = 'default' | 'monster-spell-trap' | 'alphabetical';
-export type ViewMode = 'standard' | 'list' | 'compact';
-export type Density = 'standard' | 'high';
+export type BuilderTab = 'deck' | 'search';
+export type ListOrGrid = 'list' | 'grid';
 
 interface BuilderActions {
   addCard: (card: Card, location: 'main' | 'extra' | 'side') => void;
   removeCard: (instanceId: string, location: 'main' | 'extra' | 'side') => void;
   setCardTag: (instanceId: string, location: 'main' | 'extra' | 'side', tag: UserTag) => void;
   moveCard: (instanceId: string, fromZone: 'main' | 'extra' | 'side', toZone: 'main' | 'extra' | 'side') => void;
+  reorderGroup: (location: 'main' | 'extra' | 'side', orderedCardIds: number[]) => void;
+  moveGroup: (cardId: number, fromZone: 'main' | 'extra' | 'side', toZone: 'main' | 'extra' | 'side') => void;
   clearDeck: () => void;
   loadDeck: (deckId: string, versionId: string | null, main: DeckCard[], extra: DeckCard[], side: DeckCard[]) => void;
-  
-  // New Filter & Sort Actions
+
+  // Filter & Sort Actions
   setFilters: (filters: Partial<ActiveFilters>) => void;
   setSortMethod: (method: SortMethod) => void;
   sortDeck: (method: SortMethod) => void;
-  
+
   // View Settings
-  setViewMode: (mode: ViewMode) => void;
-  toggleStacked: () => void;
-  setDensity: (density: Density) => void;
-  
+  setBuilderTab: (tab: BuilderTab) => void;
+  setDeckViewMode: (mode: ListOrGrid) => void;
+  setSearchViewMode: (mode: ListOrGrid) => void;
+
   // Mobile UX State
   setActivePreviewCard: (card: DeckCard | null) => void;
 }
@@ -42,9 +47,9 @@ interface BuilderActions {
 type BuilderStore = DeckState & {
   activeFilters: ActiveFilters;
   sortMethod: SortMethod;
-  viewMode: ViewMode;
-  isStacked: boolean;
-  density: Density;
+  builderTab: BuilderTab;
+  deckViewMode: ListOrGrid;
+  searchViewMode: ListOrGrid;
   activePreviewCard: DeckCard | null;
 } & BuilderActions;
 
@@ -55,11 +60,14 @@ const MAX_COPIES = 3;
 
 const DEFAULT_FILTERS: ActiveFilters = {
   text: '',
+  cardTypes: [],
   attributes: [],
-  race: null,
-  level: [0, 13], // 0 covers Spells/Traps, 13 covers Max Rank
-  archetype: null,
-  cardType: null,
+  races: [],
+  levels: [],
+  archetypes: [],
+  extraKinds: [],
+  spellSubtypes: [],
+  trapSubtypes: [],
 };
 
 export const useBuilderStore = create<BuilderStore>()(
@@ -72,9 +80,9 @@ export const useBuilderStore = create<BuilderStore>()(
       unsavedChanges: false,
       activeFilters: DEFAULT_FILTERS,
       sortMethod: 'default',
-      viewMode: 'standard',
-      isStacked: false,
-      density: 'standard',
+      builderTab: 'deck',
+      deckViewMode: 'list',
+      searchViewMode: 'list',
       activePreviewCard: null,
 
       setActivePreviewCard: (card) => set({ activePreviewCard: card }),
@@ -123,13 +131,13 @@ export const useBuilderStore = create<BuilderStore>()(
            // Find the card definition ID first
            const allCards = [...state.mainDeck, ...state.extraDeck, ...state.sideDeck];
            const targetCard = allCards.find(c => c.instanceId === instanceId);
-           
+
            if (!targetCard) return state;
-           
+
            const cardId = targetCard.id;
 
            // Helper to update list
-           const updateList = (list: DeckCard[]) => list.map(c => 
+           const updateList = (list: DeckCard[]) => list.map(c =>
              c.id === cardId ? { ...c, userTag: tag } : c
            );
 
@@ -147,7 +155,7 @@ export const useBuilderStore = create<BuilderStore>()(
         set((state) => {
             const fromKey = fromZone === 'main' ? 'mainDeck' : fromZone === 'extra' ? 'extraDeck' : 'sideDeck';
             const toKey = toZone === 'main' ? 'mainDeck' : toZone === 'extra' ? 'extraDeck' : 'sideDeck';
-            
+
             const card = state[fromKey].find(c => c.instanceId === instanceId);
             if (!card) return state;
 
@@ -162,6 +170,46 @@ export const useBuilderStore = create<BuilderStore>()(
                 [toKey]: [...targetDeck, card],
                 unsavedChanges: true
             };
+        });
+      },
+
+      // Cards are grouped by id for display (one row per unique card + qty badge),
+      // so reordering/moving acts on the whole stack rather than one instance.
+      reorderGroup: (location, orderedCardIds) => {
+        set((state) => {
+          const key = location === 'main' ? 'mainDeck' : location === 'extra' ? 'extraDeck' : 'sideDeck';
+          const list = state[key];
+          const byId = new Map<number, DeckCard[]>();
+          list.forEach(c => {
+            const arr = byId.get(c.id) || [];
+            arr.push(c);
+            byId.set(c.id, arr);
+          });
+          const newList: DeckCard[] = [];
+          orderedCardIds.forEach(id => newList.push(...(byId.get(id) || [])));
+          byId.forEach((cards, id) => { if (!orderedCardIds.includes(id)) newList.push(...cards); });
+          return { ...state, [key]: newList, unsavedChanges: true };
+        });
+      },
+
+      moveGroup: (cardId, fromZone, toZone) => {
+        set((state) => {
+          const fromKey = fromZone === 'main' ? 'mainDeck' : fromZone === 'extra' ? 'extraDeck' : 'sideDeck';
+          const toKey = toZone === 'main' ? 'mainDeck' : toZone === 'extra' ? 'extraDeck' : 'sideDeck';
+
+          const moving = state[fromKey].filter(c => c.id === cardId);
+          if (moving.length === 0) return state;
+
+          const targetSize = state[toKey].length;
+          const maxForTarget = toZone === 'main' ? MAX_MAIN : toZone === 'extra' ? MAX_EXTRA : MAX_SIDE;
+          if (targetSize + moving.length > maxForTarget) return state;
+
+          return {
+            ...state,
+            [fromKey]: state[fromKey].filter(c => c.id !== cardId),
+            [toKey]: [...state[toKey], ...moving],
+            unsavedChanges: true
+          };
         });
       },
 
@@ -193,10 +241,10 @@ export const useBuilderStore = create<BuilderStore>()(
       setSortMethod: (method) => {
         set({ sortMethod: method });
       },
-      
-      setViewMode: (mode) => set({ viewMode: mode }),
-      toggleStacked: () => set((state) => ({ isStacked: !state.isStacked })),
-      setDensity: (density) => set({ density }),
+
+      setBuilderTab: (tab) => set({ builderTab: tab }),
+      setDeckViewMode: (mode) => set({ deckViewMode: mode }),
+      setSearchViewMode: (mode) => set({ searchViewMode: mode }),
 
       sortDeck: (method) => {
         set((state) => {
@@ -214,19 +262,19 @@ export const useBuilderStore = create<BuilderStore>()(
                 if (type.includes('Trap')) return 3;
                 return 4; // Token etc.
               };
-              
+
               const pA = getTypePriority(a.type);
               const pB = getTypePriority(b.type);
-              
+
               if (pA !== pB) return pA - pB;
-              
+
               // Then Level (descending for monsters)
               if (pA === 1) {
                   const levelA = a.level || a.scale || a.linkval || 0;
                   const levelB = b.level || b.scale || b.linkval || 0;
                   if (levelA !== levelB) return levelB - levelA;
               }
-              
+
               // Finally Name
               return a.name.localeCompare(b.name);
             }
@@ -245,6 +293,19 @@ export const useBuilderStore = create<BuilderStore>()(
     }),
     {
       name: 'deckdojo-builder-draft',
+      // Bumped because ActiveFilters' shape changed (single-select -> multi-select
+      // arrays) — without this, browsers with the old cached shape crash on read.
+      version: 1,
+      // Only deck contents need to survive a refresh; filters/view-mode are
+      // session-local UI state and should always start fresh.
+      partialize: (state) => ({
+        versionId: state.versionId,
+        mainDeck: state.mainDeck,
+        extraDeck: state.extraDeck,
+        sideDeck: state.sideDeck,
+        unsavedChanges: state.unsavedChanges,
+        sortMethod: state.sortMethod,
+      }),
     }
   )
 );

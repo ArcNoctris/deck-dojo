@@ -1,20 +1,27 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useVirtualizer } from '@tanstack/react-virtual';
 import { CardRow } from './CardRow';
+import { CardTile } from './CardTile';
 import { useBuilderStore } from '@/store/builder-store';
 import { searchCards } from '@/utils/supabase/queries';
 import { getOracleRecommendations } from '@/app/deck/[id]/actions';
-import { Sparkles, Plus } from 'lucide-react';
-import { toast } from 'sonner';
+import { computeDominantArchetypeSynergy } from '@/utils/decks/synergy';
+import { Card } from '@/types/database.types';
 
-const ROW_HEIGHT = 70; // Height of CardRow
+interface CardGroup {
+  key: string;
+  label: string;
+  color: string;
+  cards: Card[];
+}
 
 export const VirtualCardList = () => {
-  const parentRef = useRef<HTMLDivElement>(null);
-  const { activeFilters, mainDeck, addCard } = useBuilderStore();
+  const { activeFilters, mainDeck, extraDeck, sideDeck, searchViewMode } = useBuilderStore();
+
+  const countById = new Map<number, number>();
+  [...mainDeck, ...extraDeck, ...sideDeck].forEach((c) => countById.set(c.id, (countById.get(c.id) || 0) + 1));
 
   // Server-Side Search
   const { data: filteredCards = [], isLoading, isFetching } = useQuery({
@@ -24,31 +31,20 @@ export const VirtualCardList = () => {
     refetchOnWindowFocus: false,
   });
 
-  // Top 3 Oracle Cards
+  // Oracle recommendations, used to promote a "Top Picks" group
   const { data: recommendations = [] } = useQuery({
     queryKey: ['oracle', mainDeck.map(c => c.id).join(',')],
     queryFn: () => getOracleRecommendations(mainDeck),
     staleTime: 60000,
   });
 
-  const top3Oracle = recommendations.slice(0, 3);
-  
-  // Has active filter? If yes, maybe hide oracle
-  const isSearchActive = activeFilters.text.length > 0 || activeFilters.attributes.length > 0 || activeFilters.race || activeFilters.archetype || activeFilters.cardType;
-
-  // Virtualizer
-  const rowVirtualizer = useVirtualizer({
-    count: filteredCards.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => ROW_HEIGHT,
-    overscan: 5,
-  });
+  const { archetype: dominantArchetype } = computeDominantArchetypeSynergy(mainDeck);
 
   if (isLoading) {
       return (
         <div className="flex flex-col items-center justify-center h-40 gap-2">
-            <div className="w-8 h-8 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
-            <span className="text-cyan-500 font-mono text-sm animate-pulse">Scanning Database...</span>
+            <div className="w-8 h-8 border-2 border-[var(--color-arcade-cyan)] border-t-transparent rounded-full animate-spin"></div>
+            <span className="text-[var(--color-arcade-cyan)] font-mono text-sm animate-pulse">Scanning Database...</span>
         </div>
       );
   }
@@ -56,88 +52,60 @@ export const VirtualCardList = () => {
   if (filteredCards.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center h-64 text-center px-4">
-             <div className="text-gray-500 font-mono text-sm mb-2">NO SIGNALS DETECTED</div>
-             <p className="text-xs text-gray-600 max-w-[200px]">
+             <div className="text-[var(--color-arcade-text-muted)] font-mono text-sm mb-2">NO SIGNALS DETECTED</div>
+             <p className="text-xs text-[var(--color-arcade-text-muted)] max-w-[200px]">
                  Adjust your filters to broaden the search parameters.
              </p>
         </div>
       );
   }
 
+  // Recommend -> archetype -> normal cards, matching the design's grouped ordering.
+  const oracleIds = new Set(recommendations.map(c => c.id));
+  const topPicks = filteredCards.filter(c => oracleIds.has(c.id)).slice(0, 3);
+  const topIds = new Set(topPicks.map(c => c.id));
+
+  const archetypeMatches = dominantArchetype
+    ? filteredCards.filter(c => !topIds.has(c.id) && c.archetype === dominantArchetype)
+    : [];
+  const archIds = new Set(archetypeMatches.map(c => c.id));
+
+  const restCards = filteredCards.filter(c => !topIds.has(c.id) && !archIds.has(c.id));
+
+  const groups: CardGroup[] = [
+    { key: 'top', label: 'TOP PICKS', color: 'var(--color-arcade-amber)', cards: topPicks },
+    { key: 'arch', label: `${dominantArchetype?.toUpperCase()} MATCHES`, color: 'var(--color-arcade-cyan)', cards: archetypeMatches },
+    { key: 'rest', label: 'ALL CARDS', color: 'var(--color-arcade-text-muted)', cards: restCards },
+  ].filter((g) => g.cards.length > 0);
+
   return (
-    <div className="h-full w-full flex flex-col">
-      {/* Top 3 Oracle Recommendations (Only show if no search is active) */}
-      {!isSearchActive && top3Oracle.length > 0 && (
-          <div className="shrink-0 p-4 border-b border-navy-800 bg-navy-950/50">
-              <div className="flex items-center gap-2 mb-3">
-                  <Sparkles className="w-4 h-4 text-focus-amber" />
-                  <span className="font-heading text-xs tracking-widest text-focus-amber uppercase">Oracle Top Picks</span>
+    <div className="h-full w-full overflow-y-auto thin-scroll relative">
+      <div className="flex flex-col gap-4 pb-4">
+        {groups.map((group) => (
+          <div key={group.key} className="flex flex-col gap-1.5">
+            <span
+              className="font-mono font-bold text-[10px] tracking-widest px-4 pt-3"
+              style={{ color: group.color }}
+            >
+              {group.label}
+            </span>
+            {searchViewMode === 'list' ? (
+              <div className="flex flex-col">
+                {group.cards.map((card) => <CardRow key={card.id} card={card} inDeckCount={countById.get(card.id) || 0} />)}
               </div>
-              <div className="flex gap-3 overflow-x-auto scrollbar-hide">
-                  {top3Oracle.map((card) => (
-                      <div key={`oracle-${card.id}`} className="relative group shrink-0 w-16 md:w-20 aspect-[2/3]">
-                         <button
-                             onClick={() => {
-                                addCard(card, 'main');
-                                toast.success(`${card.name} added to Main Deck`, {
-                                    icon: <Sparkles className="w-4 h-4 text-focus-amber" />,
-                                    style: { background: '#0B0C10', borderColor: '#F9ED69', color: '#F9ED69' }
-                                });
-                             }}
-                             className="absolute inset-0 z-20 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]"
-                         >
-                             <Plus className="w-6 h-6 text-focus-amber" />
-                         </button>
-                         <div className="w-full h-full rounded-sm overflow-hidden border border-focus-amber/30 group-hover:border-focus-amber shadow-sm bg-navy-800">
-                           {card.image_url_small ? (
-                               <img src={card.image_url_small} alt={card.name} className="w-full h-full object-cover" loading="lazy" />
-                           ) : (
-                               <div className="w-full h-full flex items-center justify-center text-[8px] text-gray-500 font-mono text-center p-1 leading-tight">
-                                   {card.name}
-                               </div>
-                           )}
-                         </div>
-                      </div>
-                  ))}
+            ) : (
+              <div className="grid grid-cols-3 gap-1.5 px-4">
+                {group.cards.map((card) => <CardTile key={card.id} card={card} inDeckCount={countById.get(card.id) || 0} />)}
               </div>
+            )}
+          </div>
+        ))}
+      </div>
+      {isFetching && !isLoading && (
+          <div className="sticky bottom-2 float-right mr-4 text-[10px] text-[var(--color-arcade-cyan)] animate-pulse bg-[var(--color-arcade-surface)]/80 px-2 py-1 rounded z-10">
+              REFRESHING...
           </div>
       )}
-
-      <div 
-        ref={parentRef} 
-        className="flex-1 w-full overflow-y-auto contain-strict scrollbar-thin scrollbar-thumb-navy-800 scrollbar-track-transparent"
-      >
-        <div
-          style={{
-            height: `${rowVirtualizer.getTotalSize()}px`,
-            width: '100%',
-            position: 'relative',
-          }}
-        >
-          {rowVirtualizer.getVirtualItems().map((virtualItem) => {
-            const card = filteredCards[virtualItem.index];
-            return (
-              <CardRow
-                key={card.id}
-                card={card}
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height: `${virtualItem.size}px`,
-                  transform: `translateY(${virtualItem.start}px)`,
-                }}
-              />
-            );
-          })}
-        </div>
-        {isFetching && !isLoading && (
-            <div className="absolute bottom-2 right-4 text-[10px] text-cyan-500 animate-pulse bg-navy-900/80 px-2 rounded z-10">
-                REFRESHING...
-            </div>
-        )}
-      </div>
     </div>
   );
 };

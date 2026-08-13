@@ -57,9 +57,13 @@ export const useDuelSync = () => {
                             state: {
                                 lp1: currentState.lp1,
                                 lp2: currentState.lp2,
+                                startLp: currentState.startLp,
                                 timer: currentState.timer,
                                 timerRunning: currentState.timerRunning,
                                 logs: currentState.logs,
+                                round: currentState.round,
+                                wins: currentState.wins,
+                                roundOver: currentState.roundOver,
                             }
                         }
                     });
@@ -100,9 +104,13 @@ export const useDuelSync = () => {
         const statePayload = {
             lp1: currentState.lp1,
             lp2: currentState.lp2,
+            startLp: currentState.startLp,
             timer: currentState.timer,
             timerRunning: currentState.timerRunning,
-            logs: currentState.logs
+            logs: currentState.logs,
+            round: currentState.round,
+            wins: currentState.wins,
+            roundOver: currentState.roundOver,
         };
 
         // Broadcast to channel
