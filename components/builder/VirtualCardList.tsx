@@ -94,7 +94,7 @@ export const VirtualCardList = () => {
                 {group.cards.map((card) => <CardRow key={card.id} card={card} inDeckCount={countById.get(card.id) || 0} />)}
               </div>
             ) : (
-              <div className="grid grid-cols-3 gap-1.5 px-4">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-1.5 px-4">
                 {group.cards.map((card) => <CardTile key={card.id} card={card} inDeckCount={countById.get(card.id) || 0} />)}
               </div>
             )}

@@ -45,3 +45,17 @@ export function parseYDK(ydkString: string) {
 
   return result;
 }
+
+/** Builds a standard YDK file string from Konami IDs grouped by zone. */
+export function buildYDK(main: number[], extra: number[], side: number[], createdBy = 'Deck Dojo') {
+  const lines = [
+    `#created by ${createdBy}`,
+    '#main',
+    ...main.map(String),
+    '#extra',
+    ...extra.map(String),
+    '!side',
+    ...side.map(String),
+  ];
+  return lines.join('\n') + '\n';
+}

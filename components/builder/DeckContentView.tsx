@@ -242,7 +242,7 @@ const ZoneSection = ({ zone, label, count, max, labelColor, groups, viewMode, er
       <SortableContext items={ids} strategy={viewMode === 'list' ? verticalListSortingStrategy : horizontalListSortingStrategy}>
         <div
           ref={setNodeRef}
-          className={viewMode === 'list' ? 'flex flex-col gap-1.5 min-h-[10px]' : 'grid grid-cols-4 gap-1.5 min-h-[10px]'}
+          className={viewMode === 'list' ? 'flex flex-col gap-1.5 min-h-[10px]' : 'grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-1.5 min-h-[10px]'}
         >
           {groups.map((g) =>
             viewMode === 'list' ? (

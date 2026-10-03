@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Menu, Transition } from '@headlessui/react';
-import { MoreVertical, Save, Loader2, Settings, ArrowLeft, Upload } from 'lucide-react';
+import { MoreVertical, Save, Loader2, Settings, ArrowLeft, Upload, Download } from 'lucide-react';
 import { Fragment } from 'react';
 import Link from 'next/link';
 import { useBuilderStore } from '@/store/builder-store';
@@ -13,6 +13,7 @@ import { TestHandModal } from '@/components/simulation/TestHandModal';
 import { VersionSelector } from './VersionSelector';
 import { MatchLoggerModal } from '@/components/arena/MatchLoggerModal';
 import { YdkImportModal } from './YdkImportModal';
+import { buildYDK } from '@/utils/ydk-parser';
 
 interface DeckHeaderProps {
   deckId: string;
@@ -56,6 +57,21 @@ export const DeckHeader = ({ deckId, name, format }: DeckHeaderProps) => {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleExport = () => {
+    const ydk = buildYDK(
+      mainDeck.map((c) => c.id),
+      extraDeck.map((c) => c.id),
+      sideDeck.map((c) => c.id)
+    );
+    const blob = new Blob([ydk], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${name.trim().replace(/[^a-z0-9_-]+/gi, '_') || 'deck'}.ydk`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const commitNameEdit = async () => {
@@ -134,6 +150,16 @@ export const DeckHeader = ({ deckId, name, format }: DeckHeaderProps) => {
                         className={`${active ? 'bg-[var(--color-arcade-surface)] text-[var(--color-arcade-cyan)]' : 'text-[var(--color-arcade-text)]'} group flex w-full items-center rounded-md px-2 py-2 text-xs font-mono`}
                       >
                         <Upload className="mr-2 h-4 w-4" /> IMPORT YDK
+                      </button>
+                    )}
+                  </Menu.Item>
+                  <Menu.Item>
+                    {({ active }) => (
+                      <button
+                        onClick={handleExport}
+                        className={`${active ? 'bg-[var(--color-arcade-surface)] text-[var(--color-arcade-cyan)]' : 'text-[var(--color-arcade-text)]'} group flex w-full items-center rounded-md px-2 py-2 text-xs font-mono`}
+                      >
+                        <Download className="mr-2 h-4 w-4" /> EXPORT YDK
                       </button>
                     )}
                   </Menu.Item>
