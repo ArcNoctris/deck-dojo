@@ -32,12 +32,8 @@ export const DeckHeader = ({ deckId, name, format }: DeckHeaderProps) => {
   const [formatValue, setFormatValue] = useState(format);
 
   const closeDialog = useCallback(() => setDialog(null), []);
-  // Close the tools sheet first, then open the target dialog on the next frame
-  // so the two overlays never fight over focus/scroll lock.
-  const openFromSheet = (target: Exclude<Dialog, 'tools' | null>) => {
-    setDialog(null);
-    requestAnimationFrame(() => setDialog(target));
-  };
+  // Only one dialog is open at a time, so switching replaces the sheet.
+  const openFromSheet = (target: Exclude<Dialog, 'tools' | null>) => setDialog(target);
 
   const handleSave = async () => {
     setIsSaving(true);
