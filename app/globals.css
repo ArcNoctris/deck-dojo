@@ -1,4 +1,7 @@
 @import "tailwindcss";
+/* Markdown docs contain Windows paths like `C--x\4d49…` that Tailwind parses as invalid CSS escapes. */
+@source not "../docs";
+@source not "../openspec";
 
 @theme {
   /* Requested Palette */
