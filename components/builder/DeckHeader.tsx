@@ -1,19 +1,18 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Menu, Transition } from '@headlessui/react';
-import { MoreVertical, Save, Loader2, Settings, ArrowLeft, Upload, Download } from 'lucide-react';
-import { Fragment } from 'react';
+import React, { useCallback, useState } from 'react';
+import { MoreHorizontal, Save, Loader2, ArrowLeft, FlaskConical, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { useBuilderStore } from '@/store/builder-store';
-import { saveDeck, SavedDeckCard, updateDeckMetadata } from '@/app/deck/[id]/actions';
+import { saveDeck, updateDeckMetadata } from '@/app/deck/[id]/actions';
 import { toast } from 'sonner';
-import { DeckSettingsModal } from './DeckSettingsModal';
 import { TestHandModal } from '@/components/simulation/TestHandModal';
-import { VersionSelector } from './VersionSelector';
 import { MatchLoggerModal } from '@/components/arena/MatchLoggerModal';
 import { YdkImportModal } from './YdkImportModal';
+import { DeckToolsSheet } from './DeckToolsSheet';
+import { useDeckVersions } from './hooks/useDeckVersions';
 import { buildYDK } from '@/utils/ydk-parser';
+import { toSavedCards } from '@/utils/deck-cards';
 
 interface DeckHeaderProps {
   deckId: string;
@@ -21,34 +20,29 @@ interface DeckHeaderProps {
   format: string;
 }
 
+type Dialog = 'tools' | 'testHand' | 'logMatch' | 'import' | null;
+
 export const DeckHeader = ({ deckId, name, format }: DeckHeaderProps) => {
   const { mainDeck, extraDeck, sideDeck, unsavedChanges, versionId, builderTab, setBuilderTab } = useBuilderStore();
+  const versions = useDeckVersions(deckId);
   const [isSaving, setIsSaving] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const [showImport, setShowImport] = useState(false);
+  const [dialog, setDialog] = useState<Dialog>(null);
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState(name);
+  const [formatValue, setFormatValue] = useState(format);
+
+  const closeDialog = useCallback(() => setDialog(null), []);
+  // Close the tools sheet first, then open the target dialog on the next frame
+  // so the two overlays never fight over focus/scroll lock.
+  const openFromSheet = (target: Exclude<Dialog, 'tools' | null>) => {
+    setDialog(null);
+    requestAnimationFrame(() => setDialog(target));
+  };
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const allCards = [
-        ...mainDeck.map(c => ({ ...c, location: 'main' as const })),
-        ...extraDeck.map(c => ({ ...c, location: 'extra' as const })),
-        ...sideDeck.map(c => ({ ...c, location: 'side' as const }))
-      ];
-
-      const grouped = new Map<string, SavedDeckCard>();
-      allCards.forEach(card => {
-        const key = `${card.id}-${card.location}-${card.userTag || 'null'}`;
-        if (grouped.has(key)) {
-          grouped.get(key)!.quantity++;
-        } else {
-          grouped.set(key, { card_id: card.id, location: card.location, quantity: 1, user_tag: card.userTag });
-        }
-      });
-
-      await saveDeck(deckId, Array.from(grouped.values()), versionId || undefined);
+      await saveDeck(deckId, toSavedCards(mainDeck, extraDeck, sideDeck), versionId || undefined);
       toast.success('Deck saved successfully');
       useBuilderStore.setState({ unsavedChanges: false });
     } catch (error) {
@@ -69,9 +63,23 @@ export const DeckHeader = ({ deckId, name, format }: DeckHeaderProps) => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${name.trim().replace(/[^a-z0-9_-]+/gi, '_') || 'deck'}.ydk`;
+    a.download = `${nameValue.trim().replace(/[^a-z0-9_-]+/gi, '_') || 'deck'}.ydk`;
     a.click();
     URL.revokeObjectURL(url);
+    toast.success('YDK downloaded');
+  };
+
+  const handleFormatChange = async (next: string) => {
+    if (next === formatValue) return;
+    const prev = formatValue;
+    setFormatValue(next);
+    try {
+      await updateDeckMetadata(deckId, nameValue, next);
+      toast.success(`Format set to ${next}`);
+    } catch {
+      setFormatValue(prev);
+      toast.error('Failed to update format');
+    }
   };
 
   const commitNameEdit = async () => {
@@ -81,122 +89,72 @@ export const DeckHeader = ({ deckId, name, format }: DeckHeaderProps) => {
       setNameValue(name);
       return;
     }
+    setNameValue(trimmed);
     try {
-      await updateDeckMetadata(deckId, trimmed, format);
+      await updateDeckMetadata(deckId, trimmed, formatValue);
     } catch {
       toast.error('Failed to rename deck');
       setNameValue(name);
     }
   };
 
+  const iconBtn = 'flex-none w-8 h-8 bg-[var(--color-arcade-panel)] border border-[var(--color-arcade-border)] rounded-lg grid place-items-center text-[var(--color-arcade-text-muted)] hover:text-[var(--color-arcade-cyan)] transition-colors';
+
   return (
     <>
       <header className="flex-none bg-[var(--color-arcade-surface)] border-b border-[var(--color-arcade-border)]">
-        <div className="px-4 pt-4 pb-2.5 flex items-center gap-2.5">
+        <div className="px-4 pt-4 pb-2.5 flex items-center gap-2">
           <Link
             href="/dashboard/decks"
+            aria-label="Back to decks"
             className="flex-none w-7 h-7 bg-[var(--color-arcade-panel)] border border-[var(--color-arcade-border)] rounded-lg grid place-items-center"
           >
             <ArrowLeft className="w-3.5 h-3.5 text-[var(--color-arcade-text)]" />
           </Link>
 
-          {editingName ? (
-            <input
-              autoFocus
-              value={nameValue}
-              onChange={(e) => setNameValue(e.target.value)}
-              onBlur={commitNameEdit}
-              onKeyDown={(e) => e.key === 'Enter' && commitNameEdit()}
-              className="flex-1 min-w-0 bg-[var(--color-arcade-panel)] border border-[var(--color-arcade-cyan)] rounded-md px-2 py-1 font-heading font-bold text-[15px] text-[var(--color-arcade-text)] outline-none"
-            />
-          ) : (
+          <div className="flex-1 min-w-0 pl-0.5">
+            {editingName ? (
+              <input
+                autoFocus
+                value={nameValue}
+                onChange={(e) => setNameValue(e.target.value)}
+                onBlur={commitNameEdit}
+                onKeyDown={(e) => e.key === 'Enter' && commitNameEdit()}
+                className="w-full bg-[var(--color-arcade-panel)] border border-[var(--color-arcade-cyan)] rounded-md px-2 py-0.5 font-heading font-bold text-[15px] text-[var(--color-arcade-text)] outline-none"
+              />
+            ) : (
+              <button
+                onClick={() => setEditingName(true)}
+                className="max-w-full flex items-center gap-1.5 font-heading font-bold text-[15px] leading-tight tracking-wide uppercase text-[var(--color-arcade-text)] text-left"
+              >
+                <span className="truncate">{nameValue}</span>
+                {unsavedChanges && <span className="flex-none w-1.5 h-1.5 rounded-full bg-[var(--color-arcade-amber)]" title="Unsaved changes" />}
+              </button>
+            )}
             <button
-              onClick={() => setEditingName(true)}
-              className="flex-1 min-w-0 flex items-center gap-1.5 font-heading font-bold text-[15px] tracking-wide uppercase text-[var(--color-arcade-text)] text-left truncate"
+              onClick={() => setDialog('tools')}
+              className="max-w-full flex items-center gap-1 font-mono text-[10px] tracking-wider text-[var(--color-arcade-text-muted)] hover:text-[var(--color-arcade-cyan)]"
             >
-              <span className="truncate">{name}</span>
-              {unsavedChanges && <span className="flex-none w-1.5 h-1.5 rounded-full bg-[var(--color-arcade-amber)]" title="Unsaved changes" />}
+              <span className="truncate">
+                <span className="text-[var(--color-arcade-cyan)]">{versions.current?.name ?? '—'}</span>
+                {' · '}
+                {formatValue.toUpperCase()}
+              </span>
+              <ChevronDown className="flex-none w-3 h-3" />
             </button>
-          )}
+          </div>
 
-          <Menu as="div" className="relative flex-none">
-            <Menu.Button className="w-8 h-8 bg-[var(--color-arcade-panel)] border border-[var(--color-arcade-border)] rounded-lg grid place-items-center text-[var(--color-arcade-text-muted)]">
-              <MoreVertical className="w-4 h-4" />
-            </Menu.Button>
-            <Transition
-              as={Fragment}
-              enter="transition ease-out duration-100"
-              enterFrom="opacity-0 scale-95"
-              enterTo="opacity-100 scale-100"
-              leave="transition ease-in duration-75"
-              leaveFrom="opacity-100 scale-100"
-              leaveTo="opacity-0 scale-95"
-            >
-              <Menu.Items className="absolute right-0 mt-2 w-56 rounded-lg bg-[var(--color-arcade-panel)] border border-[var(--color-arcade-border)] shadow-lg divide-y divide-[var(--color-arcade-border)] focus:outline-none z-30">
-                <div className="p-1">
-                  <Menu.Item>
-                    {({ active }) => (
-                      <div className={`p-1 rounded-md ${active ? 'bg-[var(--color-arcade-surface)]' : ''}`}>
-                        <VersionSelector deckId={deckId} />
-                      </div>
-                    )}
-                  </Menu.Item>
-                </div>
-                <div className="p-1">
-                  <Menu.Item>
-                    {({ active }) => (
-                      <button
-                        onClick={() => setShowImport(true)}
-                        className={`${active ? 'bg-[var(--color-arcade-surface)] text-[var(--color-arcade-cyan)]' : 'text-[var(--color-arcade-text)]'} group flex w-full items-center rounded-md px-2 py-2 text-xs font-mono`}
-                      >
-                        <Upload className="mr-2 h-4 w-4" /> IMPORT YDK
-                      </button>
-                    )}
-                  </Menu.Item>
-                  <Menu.Item>
-                    {({ active }) => (
-                      <button
-                        onClick={handleExport}
-                        className={`${active ? 'bg-[var(--color-arcade-surface)] text-[var(--color-arcade-cyan)]' : 'text-[var(--color-arcade-text)]'} group flex w-full items-center rounded-md px-2 py-2 text-xs font-mono`}
-                      >
-                        <Download className="mr-2 h-4 w-4" /> EXPORT YDK
-                      </button>
-                    )}
-                  </Menu.Item>
-                  <Menu.Item>
-                    {({ active }) => (
-                      <div className={`rounded-md ${active ? 'bg-[var(--color-arcade-surface)]' : ''} flex items-center px-2 py-1`}>
-                        <MatchLoggerModal deckId={deckId} deckVersionId={versionId || ''} />
-                      </div>
-                    )}
-                  </Menu.Item>
-                  <Menu.Item>
-                    {({ active }) => (
-                      <div className={`rounded-md ${active ? 'bg-[var(--color-arcade-surface)]' : ''} flex items-center px-2 py-1`}>
-                        <TestHandModal deckId={deckId} />
-                      </div>
-                    )}
-                  </Menu.Item>
-                </div>
-                <div className="p-1">
-                  <Menu.Item>
-                    {({ active }) => (
-                      <button
-                        onClick={() => setShowSettings(true)}
-                        className={`${active ? 'bg-[var(--color-arcade-surface)] text-[var(--color-arcade-cyan)]' : 'text-[var(--color-arcade-text)]'} group flex w-full items-center rounded-md px-2 py-2 text-xs font-mono`}
-                      >
-                        <Settings className="mr-2 h-4 w-4" /> SETTINGS
-                      </button>
-                    )}
-                  </Menu.Item>
-                </div>
-              </Menu.Items>
-            </Transition>
-          </Menu>
-
+          <button onClick={() => setDialog('testHand')} aria-label="Test hand" title="Test hand" className={iconBtn}>
+            <FlaskConical className="w-4 h-4" />
+          </button>
+          <button onClick={() => setDialog('tools')} aria-label="Deck tools" title="Deck tools" className={iconBtn}>
+            <MoreHorizontal className="w-4 h-4" />
+          </button>
           <button
             onClick={handleSave}
             disabled={isSaving}
+            aria-label="Save deck"
+            title="Save deck"
             className="flex-none w-8 h-8 bg-[var(--color-arcade-cyan)] rounded-lg grid place-items-center text-[var(--color-arcade-bg)] disabled:opacity-60"
           >
             {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
@@ -221,14 +179,31 @@ export const DeckHeader = ({ deckId, name, format }: DeckHeaderProps) => {
         </div>
       </header>
 
-      <DeckSettingsModal
-        open={showSettings}
-        onClose={() => setShowSettings(false)}
+      <DeckToolsSheet
+        open={dialog === 'tools'}
+        onClose={closeDialog}
         deckId={deckId}
-        currentName={name}
-        currentFormat={format}
+        format={formatValue}
+        unsavedChanges={unsavedChanges}
+        versions={versions}
+        onFormatChange={handleFormatChange}
+        onTestHand={() => openFromSheet('testHand')}
+        onLogMatch={() => openFromSheet('logMatch')}
+        onImport={() => openFromSheet('import')}
+        onExport={handleExport}
+        onRename={() => {
+          setDialog(null);
+          setEditingName(true);
+        }}
       />
-      <YdkImportModal open={showImport} onClose={() => setShowImport(false)} />
+      <TestHandModal deckId={deckId} open={dialog === 'testHand'} onOpenChange={(o) => setDialog(o ? 'testHand' : null)} />
+      <MatchLoggerModal
+        deckId={deckId}
+        deckVersionId={versionId || ''}
+        open={dialog === 'logMatch'}
+        onOpenChange={(o) => setDialog(o ? 'logMatch' : null)}
+      />
+      <YdkImportModal open={dialog === 'import'} onClose={closeDialog} />
     </>
   );
 };

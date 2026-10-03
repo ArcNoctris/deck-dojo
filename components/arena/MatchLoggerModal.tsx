@@ -11,10 +11,11 @@ import { toast } from 'sonner';
 interface MatchLoggerModalProps {
   deckId: string;
   deckVersionId: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-export const MatchLoggerModal = ({ deckId, deckVersionId }: MatchLoggerModalProps) => {
-  const [isOpen, setIsOpen] = useState(false);
+export const MatchLoggerModal = ({ deckId, deckVersionId, open, onOpenChange }: MatchLoggerModalProps) => {
   const [opponentDeck, setOpponentDeck] = useState('');
   const [goingFirst, setGoingFirst] = useState(true);
   const [notes, setNotes] = useState('');
@@ -42,7 +43,7 @@ export const MatchLoggerModal = ({ deckId, deckVersionId }: MatchLoggerModalProp
         notes: notes.trim() || undefined
       });
       toast.success('Match Recorded');
-      setIsOpen(false);
+      onOpenChange(false);
       // Reset form
       setOpponentDeck('');
       setNotes('');
@@ -56,17 +57,7 @@ export const MatchLoggerModal = ({ deckId, deckVersionId }: MatchLoggerModalProp
   };
 
   return (
-    <Drawer.Root open={isOpen} onOpenChange={setIsOpen}>
-      <Drawer.Trigger asChild>
-        <Button 
-            variant="ghost" 
-            className="text-strike-red hover:text-strike-red hover:bg-strike-red/10 h-10 px-3"
-            title="Log Match Result"
-        >
-            <Swords className="w-5 h-5" />
-            <span className="hidden sm:inline ml-2 text-xs font-heading tracking-wider">LOG MATCH</span>
-        </Button>
-      </Drawer.Trigger>
+    <Drawer.Root open={open} onOpenChange={onOpenChange}>
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50" />
         <Drawer.Content className="bg-navy-900 flex flex-col rounded-t-[20px] fixed bottom-0 left-0 right-0 z-50 border-t-2 border-strike-red shadow-[0_-10px_40px_rgba(255,42,109,0.15)] outline-none max-h-[90vh]">

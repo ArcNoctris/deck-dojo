@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Drawer } from 'vaul';
 import { useBuilderStore } from '@/store/builder-store';
 import { drawHand } from '@/utils/simulation/shuffler';
@@ -11,11 +11,16 @@ import { FlaskConical, RefreshCw, Plus, Calculator, BarChart3, PlayCircle } from
 import { DeckStats } from './DeckStats';
 import { DeckAnalysisView } from '@/components/analytics/DeckAnalysisView';
 
-export const TestHandModal = ({ deckId }: { deckId?: string }) => {
+interface TestHandModalProps {
+    deckId?: string;
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+}
+
+export const TestHandModal = ({ deckId, open, onOpenChange }: TestHandModalProps) => {
     const { mainDeck } = useBuilderStore();
     const [hand, setHand] = useState<DeckCard[]>([]);
     const [remainingDeck, setRemainingDeck] = useState<DeckCard[]>([]);
-    const [isOpen, setIsOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'simulator' | 'strategist'>('simulator');
 
     // Stats
@@ -43,25 +48,13 @@ export const TestHandModal = ({ deckId }: { deckId?: string }) => {
         setRemainingDeck(prev => prev.slice(1));
     };
 
+    useEffect(() => {
+        if (open) handleShuffle();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [open]);
+
     return (
-        <Drawer.Root 
-            open={isOpen} 
-            onOpenChange={(open) => {
-                setIsOpen(open);
-                if (open) {
-                    setTimeout(handleShuffle, 0);
-                }
-            }}
-        >
-            <Drawer.Trigger asChild>
-                 <Button 
-                    variant="ghost" 
-                    className="h-8 w-8 p-0 text-gray-500 hover:text-cyan-400"
-                    title="Test Hand Simulation"
-                >
-                    <FlaskConical className="w-4 h-4" />
-                </Button>
-            </Drawer.Trigger>
+        <Drawer.Root open={open} onOpenChange={onOpenChange}>
             <Drawer.Portal>
                 <Drawer.Overlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50" />
                 <Drawer.Content className="bg-navy-900 flex flex-col rounded-t-[20px] h-[95vh] mt-24 fixed bottom-0 left-0 right-0 z-50 border-t-2 border-cyan-500 shadow-[0_-10px_40px_rgba(8,217,214,0.15)] outline-none">
